@@ -455,94 +455,96 @@ const SHOP_ITEMS = [
 //  SPECIAL LOCATIONS
 // =============================================
 const SPECIAL_LOCATIONS = [
-  {
-    id: 'las_vegas',
-    name: 'Las Vegas, NV',
-    lat: 36.1699, lng: -115.1398,
-    type: 'Casino City',
-    emoji: '🎰',
-    desc: 'The city of luck! Gain Luck Tickets, spin for bonus gold, and double your find rates.',
-    specialAction: { label: '🎰 Gamble for Jackpot', fn: 'vegas' },
-    passiveBonus: 'luck_boost',
-    dropBonus: ['luck_ticket', 'coin_bag', 'gem'],
-  },
-  {
-    id: 'new_york',
-    name: 'New York City, NY',
-    lat: 40.7128, lng: -74.0060,
-    type: 'Mega City',
-    emoji: '🗽',
-    desc: 'The city that never sleeps. Trade at premium prices and unlock the Wall Street Cache.',
-    specialAction: { label: '🗽 Visit Wall Street', fn: 'nyc' },
-    passiveBonus: 'gold_boost',
-    dropBonus: ['coin_bag', 'ancient_map', 'gem'],
-  },
-  {
-    id: 'grand_canyon',
-    name: 'Grand Canyon, AZ',
-    lat: 36.1069, lng: -112.1129,
-    type: 'Natural Wonder',
-    emoji: '🏜️',
-    desc: 'Ancient rocks and hidden fossils. Dig for rare geological finds.',
-    specialAction: { label: '⛏️ Deep Excavation', fn: 'canyon' },
-    passiveBonus: 'rare_boost',
-    dropBonus: ['fossil', 'crystal', 'ancient_map'],
-  },
-  {
-    id: 'yellowstone',
-    name: 'Yellowstone, WY',
-    lat: 44.4279, lng: -110.5885,
-    type: 'National Park',
-    emoji: '🌋',
-    desc: 'Geysers and wildlife abound. Collect rare lava rocks and nature bounties.',
-    specialAction: { label: '🌋 Geyser Ritual', fn: 'yellowstone' },
-    passiveBonus: 'energy_regen',
-    dropBonus: ['lava_rock', 'fossil', 'herb'],
-  },
-  {
-    id: 'miami',
-    name: 'Miami, FL',
-    lat: 25.7617, lng: -80.1918,
-    type: 'Beach City',
-    emoji: '🏖️',
-    desc: 'Sunny shores and ocean treasures. Dive for sand dollars and sea gems.',
-    specialAction: { label: '🤿 Dive for Treasure', fn: 'miami' },
-    passiveBonus: 'water_loot',
-    dropBonus: ['sand_dollar', 'gem', 'crystal'],
-  },
-  {
-    id: 'seattle',
-    name: 'Seattle, WA',
-    lat: 47.6062, lng: -122.3321,
-    type: 'Tech Hub',
-    emoji: '🌧️',
-    desc: 'The tech capital. Hack for XP bonuses and find rare map fragments.',
-    specialAction: { label: '💻 Hack the Grid', fn: 'seattle' },
-    passiveBonus: 'xp_boost',
-    dropBonus: ['ancient_map', 'crystal', 'gem'],
-  },
-  {
-    id: 'nashville',
-    name: 'Nashville, TN',
-    lat: 36.1627, lng: -86.7816,
-    type: 'Music City',
-    emoji: '🎸',
-    desc: 'Music heals the soul. Perform for gold and earn lucky charms.',
-    specialAction: { label: '🎸 Street Perform', fn: 'nashville' },
-    passiveBonus: 'morale',
-    dropBonus: ['coin_bag', 'luck_ticket', 'herb'],
-  },
-  {
-    id: 'san_antonio',
-    name: 'San Antonio, TX',
-    lat: 29.4241, lng: -98.4936,
-    type: 'Historic City',
-    emoji: '⚔️',
-    desc: 'Remember the Alamo! Historic relics and ancient artifacts wait to be uncovered.',
-    specialAction: { label: '🏛️ Explore the Alamo', fn: 'sanantonio' },
-    passiveBonus: 'history_loot',
-    dropBonus: ['ancient_map', 'fossil', 'coin_bag'],
-  },
+  // ── Original specials ──────────────────────────────────────────────────────
+  { id:'las_vegas',    name:'Las Vegas, NV',        lat:36.1699, lng:-115.1398, type:'Casino City',     emoji:'🎰', desc:'The city of luck! Spin for bonus gold and Luck Tickets.',       specialAction:{label:'🎰 Gamble for Jackpot',   fn:'vegas'},       dropBonus:['luck_ticket','coin_bag','gem'] },
+  { id:'new_york',     name:'New York City, NY',     lat:40.7128, lng:-74.0060,  type:'Mega City',       emoji:'🗽', desc:'The city that never sleeps. Unlock the Wall Street Cache.',     specialAction:{label:'🗽 Visit Wall Street',    fn:'nyc'},         dropBonus:['coin_bag','ancient_map','gem'] },
+  { id:'grand_canyon', name:'Grand Canyon, AZ',      lat:36.1069, lng:-112.1129, type:'Natural Wonder',  emoji:'🏜️', desc:'Ancient rocks and hidden fossils. Dig for rare finds.',         specialAction:{label:'⛏️ Deep Excavation',      fn:'canyon'},      dropBonus:['fossil','crystal','ancient_map'] },
+  { id:'yellowstone',  name:'Yellowstone, WY',       lat:44.4279, lng:-110.5885, type:'National Park',   emoji:'🌋', desc:'Geysers and wildlife abound. Collect rare lava rocks.',         specialAction:{label:'🌋 Geyser Ritual',        fn:'yellowstone'}, dropBonus:['lava_rock','fossil','herb'] },
+  { id:'miami',        name:'Miami, FL',             lat:25.7617, lng:-80.1918,  type:'Beach City',      emoji:'🏖️', desc:'Sunny shores and ocean treasures. Dive for sea gems.',          specialAction:{label:'🤿 Dive for Treasure',    fn:'miami'},       dropBonus:['sand_dollar','gem','crystal'] },
+  { id:'seattle',      name:'Seattle, WA',           lat:47.6062, lng:-122.3321, type:'Tech Hub',        emoji:'🌧️', desc:'The tech capital. Hack for XP bonuses and map fragments.',      specialAction:{label:'💻 Hack the Grid',        fn:'seattle'},     dropBonus:['ancient_map','crystal','gem'] },
+  { id:'nashville',    name:'Nashville, TN',         lat:36.1627, lng:-86.7816,  type:'Music City',      emoji:'🎸', desc:'Music heals the soul. Perform for gold and lucky charms.',      specialAction:{label:'🎸 Street Perform',       fn:'nashville'},   dropBonus:['coin_bag','luck_ticket','herb'] },
+  { id:'san_antonio',  name:'San Antonio, TX',       lat:29.4241, lng:-98.4936,  type:'Historic City',   emoji:'⚔️', desc:'Remember the Alamo! Historic relics and artifacts wait.',       specialAction:{label:'🏛️ Explore the Alamo',   fn:'sanantonio'},  dropBonus:['ancient_map','fossil','coin_bag'] },
+  // ── New US cities ─────────────────────────────────────────────────────────
+  { id:'los_angeles',  name:'Los Angeles, CA',       lat:34.0522, lng:-118.2437, type:'Entertainment Capital', emoji:'🎬', desc:'Hollywood glitz and beach vibes. Land an acting gig or find star-studded loot.', specialAction:{label:'🎬 Hit the Studio',     fn:'la'},          dropBonus:['gem','coin_bag','luck_ticket'] },
+  { id:'chicago',      name:'Chicago, IL',           lat:41.8781, lng:-87.6298,  type:'Windy City',      emoji:'🌬️', desc:'Deep-dish deals and lakeside loot. Find blues-bar treasures.',  specialAction:{label:'🌊 Lake Michigan Dive',  fn:'chicago'},     dropBonus:['fossil','crystal','coin_bag'] },
+  { id:'houston',      name:'Houston, TX',           lat:29.7604, lng:-95.3698,  type:'Space City',      emoji:'🚀', desc:'Houston, we have loot! Collect NASA relics and space crystals.',specialAction:{label:'🚀 Launch Pad Search',   fn:'houston'},     dropBonus:['crystal','ancient_map','coin_bag'] },
+  { id:'phoenix',      name:'Phoenix, AZ',           lat:33.4484, lng:-112.0740, type:'Desert Metropolis',emoji:'🌵', desc:'Desert heat hides ancient treasures buried in the sand.',      specialAction:{label:'🌵 Desert Dig',          fn:'phoenix'},     dropBonus:['fossil','lava_rock','crystal'] },
+  { id:'philadelphia', name:'Philadelphia, PA',      lat:39.9526, lng:-75.1652,  type:'Liberty City',    emoji:'🔔', desc:'Ring in the riches. Find Colonial-era relics near the Bell.',   specialAction:{label:'🔔 Liberty Bell Hunt',   fn:'philly'},      dropBonus:['ancient_map','coin_bag','fossil'] },
+  { id:'san_diego',    name:'San Diego, CA',         lat:32.7157, lng:-117.1611, type:'Beach & Navy Hub', emoji:'⚓', desc:'Sun, surf, and naval secrets. Dive for ocean bounty.',          specialAction:{label:'⚓ Harbor Search',        fn:'sandiego'},    dropBonus:['sand_dollar','gem','crystal'] },
+  { id:'dallas',       name:'Dallas, TX',            lat:32.7767, lng:-96.7970,  type:'Lone Star Hub',   emoji:'🤠', desc:'Big hats, bigger loot. Rustle up gold on the range.',           specialAction:{label:'🤠 Cattle Drive Raid',   fn:'dallas'},      dropBonus:['coin_bag','fossil','luck_ticket'] },
+  { id:'san_jose',     name:'San Jose, CA',          lat:37.3382, lng:-121.8863, type:'Silicon Valley',  emoji:'💡', desc:'The birthplace of tech. Hack your way to rare digital loot.',   specialAction:{label:'💡 Silicon Heist',        fn:'sanjose'},     dropBonus:['crystal','ancient_map','gem'] },
+  { id:'austin',       name:'Austin, TX',            lat:30.2672, lng:-97.7431,  type:'Weird City',      emoji:'🎵', desc:'Keep Austin weird — and loot plentiful. Live music = lucky finds.',specialAction:{label:'🎵 6th Street Busk',    fn:'austin'},      dropBonus:['luck_ticket','coin_bag','herb'] },
+  { id:'jacksonville', name:'Jacksonville, FL',      lat:30.3322, lng:-81.6557,  type:'River City',      emoji:'🐊', desc:'Alligator country. Brave the swamps for exotic finds.',          specialAction:{label:'🐊 Swamp Dive',          fn:'jacksonville'}, dropBonus:['fossil','herb','sand_dollar'] },
+  { id:'fort_worth',   name:'Fort Worth, TX',        lat:32.7555, lng:-97.3308,  type:'Cowboy Capital',  emoji:'🐴', desc:'Cowboy culture and hidden stockyard treasures await.',          specialAction:{label:'🐴 Stockyard Search',    fn:'fortworth'},   dropBonus:['coin_bag','fossil','luck_ticket'] },
+  { id:'columbus',     name:'Columbus, OH',          lat:39.9612, lng:-82.9988,  type:'Crossroads City', emoji:'🏟️', desc:'The heart of Ohio holds buried Midwestern relics.',             specialAction:{label:'🏟️ Stadium Sweep',       fn:'columbus'},    dropBonus:['coin_bag','crystal','herb'] },
+  { id:'charlotte',    name:'Charlotte, NC',         lat:35.2271, lng:-80.8431,  type:'Banking City',    emoji:'🏦', desc:'Finance capital of the South. Vault-crack for gold stashes.',   specialAction:{label:'🏦 Vault Crack',         fn:'charlotte'},   dropBonus:['coin_bag','gem','ancient_map'] },
+  { id:'indianapolis', name:'Indianapolis, IN',      lat:39.7684, lng:-86.1581,  type:'Racing City',     emoji:'🏎️', desc:'Speed is loot here. Race to find scattered pit-stop treasures.', specialAction:{label:'🏎️ Pit Stop Raid',      fn:'indianapolis'}, dropBonus:['crystal','coin_bag','luck_ticket'] },
+  { id:'san_francisco',name:'San Francisco, CA',     lat:37.7749, lng:-122.4194, type:'Bay City',        emoji:'🌉', desc:'Golden Gate, golden loot. Fog hides rare treasures on the bay.', specialAction:{label:'🌉 Bay Area Search',     fn:'sf'},          dropBonus:['gem','ancient_map','crystal'] },
+  { id:'seattle2',     name:'Olympia, WA',           lat:47.0379, lng:-122.9007, type:'State Capital',   emoji:'🏛️', desc:'Quiet capital full of forgotten government relics.',            specialAction:{label:'🏛️ Capitol Dig',         fn:'olympia'},     dropBonus:['ancient_map','coin_bag','fossil'] },
+  { id:'denver',       name:'Denver, CO',            lat:39.7392, lng:-104.9903, type:'Mile High City',  emoji:'⛰️', desc:'A mile up, a mountain of loot. Hunt rocky mountain crystals.',  specialAction:{label:'⛰️ Mountain Mine',        fn:'denver'},      dropBonus:['crystal','lava_rock','fossil'] },
+  { id:'washington_dc',name:'Washington D.C.',       lat:38.9072, lng:-77.0369,  type:'Capital City',    emoji:'🏛️', desc:'Power and secrets. Uncover government relics and rare maps.',   specialAction:{label:'🏛️ Monument Hunt',       fn:'dc'},          dropBonus:['ancient_map','coin_bag','gem'] },
+  { id:'boston',       name:'Boston, MA',            lat:42.3601, lng:-71.0589,  type:'Historic Hub',    emoji:'🫘', desc:'Revolutionary relics and harbor treasures hide in plain sight.', specialAction:{label:'🫘 Harbor Search',       fn:'boston'},      dropBonus:['fossil','ancient_map','coin_bag'] },
+  { id:'el_paso',      name:'El Paso, TX',           lat:31.7619, lng:-106.4850, type:'Border City',     emoji:'🌮', desc:'Cross-border trade brings rare finds. Desert winds carry secrets.', specialAction:{label:'🌮 Border Market',      fn:'elpaso'},      dropBonus:['fossil','herb','coin_bag'] },
+  { id:'memphis',      name:'Memphis, TN',           lat:35.1495, lng:-90.0490,  type:'Blues City',      emoji:'🎷', desc:'Blues soul and Mississippi mud hold hidden musical relics.',     specialAction:{label:'🎷 Beale St. Search',    fn:'memphis'},     dropBonus:['luck_ticket','coin_bag','crystal'] },
+  { id:'portland',     name:'Portland, OR',          lat:45.5051, lng:-122.6750, type:'Keep It Weird',   emoji:'🌲', desc:'Quirky markets and forest trails hide eclectic treasures.',      specialAction:{label:'🌲 Forest Forage',       fn:'portland'},    dropBonus:['herb','crystal','ancient_map'] },
+  { id:'louisville',   name:'Louisville, KY',        lat:38.2527, lng:-85.7585,  type:'Derby City',      emoji:'🐎', desc:'Horses and bourbon barrels hide golden loot underground.',       specialAction:{label:'🐎 Derby Dash',          fn:'louisville'},  dropBonus:['coin_bag','luck_ticket','fossil'] },
+  { id:'baltimore',    name:'Baltimore, MD',         lat:39.2904, lng:-76.6122,  type:'Crab City',       emoji:'🦀', desc:'Harbor crabs guard underwater treasure chests.',                specialAction:{label:'🦀 Harbor Dive',         fn:'baltimore'},   dropBonus:['sand_dollar','gem','fossil'] },
+  { id:'milwaukee',    name:'Milwaukee, WI',         lat:43.0389, lng:-87.9065,  type:'Brew City',       emoji:'🍺', desc:'Brewery vaults hold hidden gold beneath the Great Lakes.',       specialAction:{label:'🍺 Vault Search',        fn:'milwaukee'},   dropBonus:['coin_bag','crystal','herb'] },
+  { id:'albuquerque',  name:'Albuquerque, NM',       lat:35.0844, lng:-106.6504, type:'Southwest Hub',   emoji:'🎈', desc:'Hot air balloons carry loot across the Rio Grande valley.',      specialAction:{label:'🎈 Balloon Chase',       fn:'albuquerque'}, dropBonus:['fossil','lava_rock','crystal'] },
+  { id:'tucson',       name:'Tucson, AZ',            lat:32.2226, lng:-110.9747, type:'Desert City',     emoji:'🦂', desc:'Scorpion territory. Brave the desert for buried Sonoran treasures.', specialAction:{label:'🦂 Sonoran Dig',     fn:'tucson'},      dropBonus:['fossil','herb','lava_rock'] },
+  { id:'fresno',       name:'Fresno, CA',            lat:36.7378, lng:-119.7871, type:'Valley Hub',      emoji:'🍇', desc:'Central Valley farmland hides irrigation-era relics.',           specialAction:{label:'🍇 Vineyard Hunt',       fn:'fresno'},      dropBonus:['herb','coin_bag','crystal'] },
+  { id:'sacramento',   name:'Sacramento, CA',        lat:38.5816, lng:-121.4944, type:'Gold Rush City',  emoji:'⛏️', desc:'Gold Rush country! Pan the river for actual gold nuggets.',       specialAction:{label:'⛏️ Gold Pan',            fn:'sacramento'},  dropBonus:['coin_bag','gem','fossil'] },
+  { id:'mesa',         name:'Mesa, AZ',              lat:33.4152, lng:-111.8315, type:'Desert Suburb',   emoji:'🌄', desc:'Desert sunsets hide ancient Hohokam artifacts underground.',      specialAction:{label:'🌄 Hohokam Dig',         fn:'mesa'},        dropBonus:['fossil','crystal','ancient_map'] },
+  { id:'omaha',        name:'Omaha, NE',             lat:41.2565, lng:-95.9345,  type:'Heartland City',  emoji:'🌽', desc:'Cornhusker country holds pioneer-era buried treasures.',         specialAction:{label:'🌽 Prairie Dig',         fn:'omaha'},       dropBonus:['coin_bag','fossil','herb'] },
+  { id:'colorado_springs', name:'Colorado Springs, CO', lat:38.8339, lng:-104.8214, type:'Mountain City', emoji:'🏔️', desc:'Pikes Peak hides rare mountain crystals and military relics.',  specialAction:{label:'🏔️ Peak Climb',         fn:'csprings'},    dropBonus:['crystal','lava_rock','ancient_map'] },
+  { id:'raleigh',      name:'Raleigh, NC',           lat:35.7796, lng:-78.6382,  type:'Research Triangle',emoji:'🔬', desc:'Research universities hide secret prototype loot caches.',     specialAction:{label:'🔬 Lab Raid',            fn:'raleigh'},     dropBonus:['crystal','gem','ancient_map'] },
+  { id:'long_beach',   name:'Long Beach, CA',        lat:33.7701, lng:-118.1937, type:'Port City',       emoji:'🚢', desc:'Shipping containers hold contraband loot from across the world.', specialAction:{label:'🚢 Shipping Raid',      fn:'longbeach'},   dropBonus:['gem','coin_bag','sand_dollar'] },
+  { id:'virginia_beach', name:'Virginia Beach, VA',  lat:36.8529, lng:-75.9780,  type:'Beach Resort',    emoji:'🌊', desc:'Atlantic waves wash ashore rare sea relics.',                   specialAction:{label:'🌊 Beach Comb',          fn:'vbeach'},      dropBonus:['sand_dollar','crystal','herb'] },
+  { id:'atlanta',      name:'Atlanta, GA',           lat:33.7490, lng:-84.3880,  type:'Peach City',      emoji:'🍑', desc:'Southern hub of culture and commerce. Hidden Civil War relics.',  specialAction:{label:'🍑 Civil War Dig',      fn:'atlanta'},     dropBonus:['fossil','ancient_map','coin_bag'] },
+  { id:'minneapolis',  name:'Minneapolis, MN',       lat:44.9778, lng:-93.2650,  type:'Twin Cities',     emoji:'❄️', desc:'Frozen lakes hide ice-preserved relics from Viking explorers.',  specialAction:{label:'❄️ Ice Fishing Loot',   fn:'minneapolis'}, dropBonus:['crystal','fossil','coin_bag'] },
+  { id:'new_orleans',  name:'New Orleans, LA',       lat:29.9511, lng:-90.0715,  type:'Jazz & Voodoo City',emoji:'🎺', desc:'Mardi Gras beads and Voodoo charms bring legendary luck.',    specialAction:{label:'🎺 Voodoo Ritual',       fn:'neworleans'},  dropBonus:['luck_ticket','gem','coin_bag'] },
+  { id:'tampa',        name:'Tampa, FL',             lat:27.9506, lng:-82.4572,  type:'Bay City',        emoji:'🌴', desc:'Pirates once buried gold here. Dig the Tampa Bay shoreline.',    specialAction:{label:'🌴 Pirate Dig',          fn:'tampa'},       dropBonus:['coin_bag','sand_dollar','gem'] },
+  { id:'honolulu',     name:'Honolulu, HI',          lat:21.3069, lng:-157.8583, type:'Island Paradise', emoji:'🌺', desc:'Aloha! Volcanic islands hold ancient Hawaiian relics and pearls.', specialAction:{label:'🌺 Lava Cave Dive',    fn:'honolulu'},    dropBonus:['lava_rock','sand_dollar','gem'] },
+  { id:'anchorage',    name:'Anchorage, AK',         lat:61.2181, lng:-149.9003, type:'Last Frontier',   emoji:'🐻', desc:'The wild frontier. Bear with us while you hunt for frozen relics.', specialAction:{label:'🐻 Wilderness Hunt',  fn:'anchorage'},   dropBonus:['fossil','crystal','herb'] },
+  { id:'kansas_city',  name:'Kansas City, MO',       lat:39.0997, lng:-94.5786,  type:'BBQ Capital',     emoji:'🥩', desc:'Smoky BBQ pits hide underground gold from the cattle drives.',   specialAction:{label:'🥩 Smokehouse Dig',      fn:'kansascity'},  dropBonus:['coin_bag','fossil','luck_ticket'] },
+  { id:'wichita',      name:'Wichita, KS',           lat:37.6872, lng:-97.3301,  type:'Air Capital',     emoji:'✈️', desc:'Aviation relics and prairie winds carry hidden plane-drop loot.', specialAction:{label:'✈️ Airfield Search',   fn:'wichita'},     dropBonus:['ancient_map','crystal','coin_bag'] },
+  // ── Mid-size & notable US cities ─────────────────────────────────────────
+  { id:'buffalo',      name:'Buffalo, NY',            lat:42.8864, lng:-78.8784,  type:'Rust Belt City',  emoji:'🦬', desc:'Niagara thunder echoes lost factory-era relics underground.',        specialAction:{label:'🌊 Niagara Hunt',        fn:'buffalo'},     dropBonus:['fossil','crystal','coin_bag'] },
+  { id:'pittsburgh',   name:'Pittsburgh, PA',         lat:40.4406, lng:-79.9959,  type:'Steel City',      emoji:'⚙️', desc:'Steel mills hid fortunes. Find industrial-era relics in the rivers.', specialAction:{label:'⚙️ River Dredge',       fn:'pittsburgh'},  dropBonus:['fossil','coin_bag','crystal'] },
+  { id:'cincinnati',   name:'Cincinnati, OH',         lat:39.1031, lng:-84.5120,  type:'Queen City',      emoji:'🏛️', desc:'Ohio River trade brought riches — some still buried here.',          specialAction:{label:'🏛️ Riverfront Dig',     fn:'cincinnati'},  dropBonus:['coin_bag','ancient_map','fossil'] },
+  { id:'cleveland',    name:'Cleveland, OH',          lat:41.4993, lng:-81.6944,  type:'Rock City',       emoji:'🎸', desc:'Rock Hall of Fame hides backstage loot and music relics.',           specialAction:{label:'🎸 Rock Hall Raid',      fn:'cleveland'},   dropBonus:['luck_ticket','coin_bag','crystal'] },
+  { id:'richmond',     name:'Richmond, VA',           lat:37.5407, lng:-77.4360,  type:'Capital of the South', emoji:'🏛️', desc:'Civil War Capitol holds buried Confederate gold.',           specialAction:{label:'🏛️ Capitol Cache',       fn:'richmond'},    dropBonus:['ancient_map','fossil','coin_bag'] },
+  { id:'salt_lake',    name:'Salt Lake City, UT',     lat:40.7608, lng:-111.8910, type:'Salt Flats City', emoji:'🏔️', desc:'The Great Salt Lake and Wasatch peaks hide crystalline treasures.',  specialAction:{label:'🏔️ Salt Flat Scan',      fn:'saltlake'},    dropBonus:['crystal','lava_rock','fossil'] },
+  { id:'hartford',     name:'Hartford, CT',           lat:41.7658, lng:-72.6851,  type:'Insurance City',  emoji:'📋', desc:'Old insurance vaults contain forgotten colonial-era wealth.',        specialAction:{label:'📋 Vault Search',        fn:'hartford'},    dropBonus:['coin_bag','ancient_map','gem'] },
+  { id:'providence',   name:'Providence, RI',         lat:41.8240, lng:-71.4128,  type:'Creative Capital',emoji:'🎨', desc:'RISD and Brown hide underground art caches and rare finds.',        specialAction:{label:'🎨 Art Cache Hunt',       fn:'providence'},  dropBonus:['gem','crystal','ancient_map'] },
+  { id:'boise',        name:'Boise, ID',              lat:43.6150, lng:-116.2023, type:'Treasure Valley', emoji:'🌿', desc:'The Treasure Valley name says it all. Snake River gold waits.',     specialAction:{label:'🌿 River Pan',           fn:'boise'},       dropBonus:['coin_bag','crystal','fossil'] },
+  { id:'spokane',      name:'Spokane, WA',            lat:47.6588, lng:-117.4260, type:'Inland Empire',   emoji:'🌲', desc:'Pacific Northwest wilderness hides trapper-era buried caches.',     specialAction:{label:'🌲 Trapper Cache',       fn:'spokane'},     dropBonus:['fossil','herb','crystal'] },
+  { id:'des_moines',   name:'Des Moines, IA',         lat:41.5868, lng:-93.6250,  type:'Prairie Capital', emoji:'🌽', desc:'Prairie winds uncover pioneer relics across the corn belt.',        specialAction:{label:'🌽 Pioneer Dig',         fn:'desmoines'},   dropBonus:['coin_bag','fossil','herb'] },
+  { id:'madison',      name:'Madison, WI',            lat:43.0731, lng:-89.4012,  type:'University City', emoji:'📚', desc:'UW-Madison labs and Capitol grounds hide rare research artifacts.', specialAction:{label:'📚 Research Cache',      fn:'madison'},     dropBonus:['crystal','ancient_map','gem'] },
+  { id:'little_rock',  name:'Little Rock, AR',        lat:34.7465, lng:-92.2896,  type:'River Capital',   emoji:'🪨', desc:'Arkansas River banks hold Civil War-era supplies and gold.',        specialAction:{label:'🪨 Riverbank Dig',       fn:'littlerock'},  dropBonus:['fossil','coin_bag','ancient_map'] },
+  { id:'jackson',      name:'Jackson, MS',            lat:32.2988, lng:-90.1848,  type:'Magnolia City',   emoji:'🌸', desc:'Delta blues history buried deep in Mississippi mud.',               specialAction:{label:'🌸 Delta Dig',           fn:'jackson'},     dropBonus:['fossil','herb','luck_ticket'] },
+  { id:'montgomery',   name:'Montgomery, AL',         lat:32.3617, lng:-86.2792,  type:'Cradle of Dixie', emoji:'🌺', desc:'Civil rights history and Civil War relics lie side by side.',       specialAction:{label:'🌺 Historic Hunt',       fn:'montgomery'},  dropBonus:['ancient_map','fossil','coin_bag'] },
+  { id:'birmingham',   name:'Birmingham, AL',         lat:33.5186, lng:-86.8104,  type:'Magic City',      emoji:'⚙️', desc:'Iron ore built this city — mines below still hold metal riches.',   specialAction:{label:'⚙️ Mine Cart Run',       fn:'birmingham'},  dropBonus:['crystal','lava_rock','coin_bag'] },
+  { id:'columbia_sc',  name:'Columbia, SC',           lat:34.0007, lng:-81.0348,  type:'Palmetto Capital',emoji:'🌴', desc:'Revolutionary War battlefields packed with buried relics.',         specialAction:{label:'🌴 Battlefield Dig',     fn:'columbiasc'},  dropBonus:['ancient_map','fossil','coin_bag'] },
+  { id:'knoxville',    name:'Knoxville, TN',          lat:35.9606, lng:-83.9207,  type:'Marble City',     emoji:'🏔️', desc:'Appalachian marble quarries and mountain trails hide gem deposits.', specialAction:{label:'🏔️ Quarry Dive',        fn:'knoxville'},   dropBonus:['crystal','fossil','gem'] },
+  { id:'lexington',    name:'Lexington, KY',          lat:38.0406, lng:-84.5037,  type:'Horse Capital',   emoji:'🐎', desc:'Bluegrass paddocks and bourbon barrels hide southern gold.',         specialAction:{label:'🐎 Paddock Hunt',        fn:'lexington'},   dropBonus:['coin_bag','luck_ticket','fossil'] },
+  { id:'rochester',    name:'Rochester, NY',          lat:43.1566, lng:-77.6088,  type:'Flower City',     emoji:'🌷', desc:'Kodak and Xerox labs left prototype relics scattered around.',      specialAction:{label:'🌷 Lab Scavenge',        fn:'rochester'},   dropBonus:['crystal','ancient_map','gem'] },
+  { id:'tulsa',        name:'Tulsa, OK',              lat:36.1540, lng:-95.9928,  type:'Oil Capital',     emoji:'🛢️', desc:'Oil boom left buried barrels of gold below the prairie.',          specialAction:{label:'🛢️ Oil Field Dig',       fn:'tulsa'},       dropBonus:['lava_rock','coin_bag','fossil'] },
+  { id:'oklahoma_city',name:'Oklahoma City, OK',      lat:35.4676, lng:-97.5164,  type:'Sooner City',     emoji:'🤠', desc:'Land Run history hides pioneer claim-stake loot underground.',      specialAction:{label:'🤠 Land Run Dig',        fn:'okcity'},      dropBonus:['coin_bag','fossil','ancient_map'] },
+  { id:'sioux_falls',  name:'Sioux Falls, SD',        lat:43.5473, lng:-96.7283,  type:'Falls City',      emoji:'💧', desc:'Quartzite waterfalls scatter pink crystal shards across the plains.',specialAction:{label:'💧 Falls Crystal Hunt',  fn:'siouxfalls'},  dropBonus:['crystal','fossil','herb'] },
+  { id:'fargo',        name:'Fargo, ND',              lat:46.8772, lng:-96.7898,  type:'Prairie City',    emoji:'❄️', desc:'Frozen Red River hides fur-trade relics from the 1800s.',           specialAction:{label:'❄️ River Ice Dig',       fn:'fargo'},       dropBonus:['fossil','crystal','coin_bag'] },
+  { id:'billings',     name:'Billings, MT',           lat:45.7833, lng:-108.5007, type:'Trailhead City',  emoji:'🦅', desc:'Rimrocks and Yellowstone River hold cowboy-era buried gold.',       specialAction:{label:'🦅 Rimrock Hunt',        fn:'billings'},    dropBonus:['fossil','coin_bag','crystal'] },
+  { id:'cheyenne',     name:'Cheyenne, WY',           lat:41.1400, lng:-104.8202, type:'Cowboy Capital',  emoji:'🤠', desc:'Frontier railroad town. Union Pacific workers buried wages here.',  specialAction:{label:'🤠 Railroad Cache',      fn:'cheyenne'},    dropBonus:['coin_bag','fossil','ancient_map'] },
+  { id:'rapid_city',   name:'Rapid City, SD',         lat:44.0805, lng:-103.2310, type:'Mt. Rushmore City',emoji:'🗿', desc:'Mount Rushmore construction left quarry gems scattered around.',   specialAction:{label:'🗿 Quarry Gem Hunt',     fn:'rapidcity'},   dropBonus:['gem','crystal','fossil'] },
+  { id:'santa_fe',     name:'Santa Fe, NM',           lat:35.6870, lng:-105.9378, type:'Ancient Capital',  emoji:'🏺', desc:'The oldest US capital hides Adobe-era Native American relics.',    specialAction:{label:'🏺 Adobe Dig',           fn:'santafe'},     dropBonus:['ancient_map','fossil','crystal'] },
+  { id:'lubbock',      name:'Lubbock, TX',            lat:33.5779, lng:-101.8552, type:'Hub City',        emoji:'🎸', desc:'Buddy Holly country. Music relics and West Texas dust gold.',       specialAction:{label:'🎸 Buddy Holly Hunt',    fn:'lubbock'},     dropBonus:['luck_ticket','coin_bag','herb'] },
+  { id:'corpus_christi',name:'Corpus Christi, TX',   lat:27.8006, lng:-97.3964,  type:'Coastal City',    emoji:'⚓', desc:'Gulf Coast tides wash in pirate shipwreck treasures.',             specialAction:{label:'⚓ Shipwreck Dive',       fn:'corpuschristi'},dropBonus:['sand_dollar','gem','fossil'] },
+  { id:'laredo',       name:'Laredo, TX',             lat:27.5036, lng:-99.5075,  type:'Border Gateway',  emoji:'🌵', desc:'Rio Grande border city. Smugglers left buried contraband here.',   specialAction:{label:'🌵 Rio Grande Dig',      fn:'laredo'},      dropBonus:['fossil','coin_bag','herb'] },
+  { id:'shreveport',   name:'Shreveport, LA',         lat:32.5252, lng:-93.7502,  type:'Red River City',  emoji:'🎲', desc:'Riverboat gambling left gold scattered on the Red River banks.',   specialAction:{label:'🎲 Riverboat Cache',     fn:'shreveport'},  dropBonus:['coin_bag','luck_ticket','fossil'] },
+  { id:'mobile',       name:'Mobile, AL',             lat:30.6954, lng:-88.0399,  type:'Port City',       emoji:'⚓', desc:'Gulf Coast port with Spanish colonial buried treasure.',           specialAction:{label:'⚓ Colonial Dig',         fn:'mobile'},      dropBonus:['ancient_map','fossil','sand_dollar'] },
+  { id:'savannah',     name:'Savannah, GA',           lat:32.0835, lng:-81.0998,  type:'Coastal Beauty',  emoji:'🌳', desc:'Spanish moss hides Civil War gold in Forsyth Park squares.',       specialAction:{label:'🌳 Square Dig',          fn:'savannah'},    dropBonus:['ancient_map','fossil','coin_bag'] },
+  { id:'charleston',   name:'Charleston, SC',         lat:32.7765, lng:-79.9311,  type:'Holy City',       emoji:'⚓', desc:'Antebellum mansions hide pre-Civil War treasure in foundations.',  specialAction:{label:'⚓ Harbor Dive',          fn:'charleston'},  dropBonus:['ancient_map','gem','fossil'] },
+  { id:'greenville',   name:'Greenville, SC',         lat:34.8526, lng:-82.3940,  type:'Upstate Hub',     emoji:'🏔️', desc:'Blue Ridge foothills and textile mills hid worker wages.',          specialAction:{label:'🏔️ Mill Dig',            fn:'greenville'},  dropBonus:['crystal','coin_bag','fossil'] },
 ];
 
 // Generic location types for everywhere else
@@ -612,17 +614,236 @@ function makePlayerIcon() {
   });
 }
 
-// Add special location markers
-SPECIAL_LOCATIONS.forEach(loc => {
-  const icon = L.divIcon({
+// =============================================
+//  CITY & FIELD SPAWN SYSTEM
+// =============================================
+
+// ── Spawn object types ──────────────────────────────────────────────────────
+const SPAWN_TYPES = [
+  { id:'crate',     emoji:'📦', label:'Supply Crate',   rarity:'common',   glow:'#a0c4ff', loot:['herb','crystal','coin_bag'],            xp:20, desc:'A supply crate! Pop it open for basic loot.' },
+  { id:'chest',     emoji:'🪙', label:'Gold Chest',     rarity:'uncommon', glow:'#ffd700', loot:['coin_bag','gem','crystal'],             xp:35, desc:'A glinting chest — could be riches inside!' },
+  { id:'barrel',    emoji:'🛢️', label:'Mystery Barrel', rarity:'common',   glow:'#8ecae6', loot:['herb','coin_bag','luck_ticket'],        xp:15, desc:'An old barrel. Smells strange but feels heavy.' },
+  { id:'bag',       emoji:'🎒', label:'Lost Backpack',  rarity:'common',   glow:'#caffbf', loot:['herb','crystal','energy_drink'],        xp:18, desc:'Someone left their bag behind.' },
+  { id:'vault',     emoji:'🔐', label:'Mini Vault',     rarity:'rare',     glow:'#ff6b6b', loot:['gem','ancient_map','treasure_map'],     xp:60, desc:'A locked vault. Crack it for rare rewards!' },
+  { id:'fossil_pit',emoji:'🦴', label:'Fossil Pit',     rarity:'uncommon', glow:'#d4a373', loot:['fossil','crystal','ancient_map'],       xp:40, desc:'Bones stick out of the ground here.' },
+  { id:'camp',      emoji:'⛺', label:'Old Camp',       rarity:'uncommon', glow:'#90e0ef', loot:['herb','energy_drink','coin_bag'],       xp:25, desc:'An abandoned campsite with leftover supplies.' },
+  { id:'shrine',    emoji:'⛩️', label:'Lucky Shrine',   rarity:'rare',     glow:'#c77dff', loot:['luck_ticket','xp_boost','gem'],         xp:55, desc:'A mystical shrine radiating good fortune.' },
+  { id:'airdrop',   emoji:'📫', label:'Airdrop Box',    rarity:'uncommon', glow:'#f9c74f', loot:['energy_drink','xp_boost','coin_bag'],   xp:30, desc:'A military airdrop crate from who knows where.' },
+  { id:'dig_spot',  emoji:'⚒️', label:'Dig Spot',       rarity:'common',   glow:'#b5838d', loot:['fossil','crystal','herb'],              xp:20, desc:'The ground looks disturbed here…' },
+];
+
+// ── Deterministic seeded RNG (mulberry32) ────────────────────────────────────
+function mulberry32(seed) {
+  let t = seed + 0x6D2B79F5;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+// ── Generate field spawns around a city ─────────────────────────────────────
+//    Uses seeded RNG so spawns are consistent for the same city every time.
+function generateCitySpawns(cityLat, cityLng, cityId) {
+  const seed = cityId.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const COUNT = 18; // spawns per city
+  const RADIUS_KM = 8;
+  const spawns = [];
+
+  for (let i = 0; i < COUNT; i++) {
+    const r1 = mulberry32(seed * 31 + i * 7);
+    const r2 = mulberry32(seed * 17 + i * 13);
+    const r3 = mulberry32(seed * 53 + i * 3);
+
+    // Random point in circle
+    const angle = r1 * 2 * Math.PI;
+    const dist  = Math.sqrt(r2) * RADIUS_KM;  // sqrt for uniform distribution
+    const dLat  = (dist / 111) * Math.cos(angle);
+    const dLng  = (dist / (111 * Math.cos(cityLat * Math.PI / 180))) * Math.sin(angle);
+
+    // Pick type weighted by rarity
+    const rarityRoll = r3;
+    let typeIdx;
+    if      (rarityRoll < 0.05) typeIdx = SPAWN_TYPES.findIndex(t => t.rarity === 'rare' && t.id === 'vault');
+    else if (rarityRoll < 0.10) typeIdx = SPAWN_TYPES.findIndex(t => t.rarity === 'rare' && t.id === 'shrine');
+    else if (rarityRoll < 0.20) typeIdx = SPAWN_TYPES.findIndex(t => t.rarity === 'uncommon' && t.id === 'chest');
+    else if (rarityRoll < 0.30) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'fossil_pit');
+    else if (rarityRoll < 0.40) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'camp');
+    else if (rarityRoll < 0.50) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'airdrop');
+    else if (rarityRoll < 0.62) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'barrel');
+    else if (rarityRoll < 0.74) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'bag');
+    else if (rarityRoll < 0.86) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dig_spot');
+    else                        typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'crate');
+    if (typeIdx < 0) typeIdx = 0;
+
+    spawns.push({
+      lat: cityLat + dLat,
+      lng: cityLng + dLng,
+      type: SPAWN_TYPES[typeIdx],
+      cityId,
+      collected: false,
+      id: `${cityId}_spawn_${i}`,
+    });
+  }
+  return spawns;
+}
+
+// ── State for all spawns & markers ──────────────────────────────────────────
+const ALL_SPAWNS = [];
+const SPAWN_MARKERS = {};
+
+// Colour palette per rarity
+const RARITY_COLORS = { common: '#64b5f6', uncommon: '#ffd54f', rare: '#ef5350' };
+// Icon shape letter per type
+const TYPE_LETTERS = {
+  crate:'C', chest:'$', barrel:'B', bag:'P', vault:'V',
+  fossil_pit:'F', camp:'K', shrine:'S', airdrop:'A', dig_spot:'D'
+};
+
+function makeSpawnIcon(spawn) {
+  const collected = spawn.collected;
+  const fill   = collected ? '#888' : (RARITY_COLORS[spawn.type.rarity] || '#64b5f6');
+  const stroke = collected ? '#555' : '#fff';
+  const letter = TYPE_LETTERS[spawn.type.id] || '?';
+  const shadow = collected ? '' : `filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))`;
+  const op     = collected ? '0.35' : '1';
+  return L.divIcon({
     className: '',
-    html: `<div style="font-size:1.4rem;filter:drop-shadow(0 0 6px gold);" title="${loc.name}">${loc.emoji}</div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    html: `
+      <svg width="28" height="36" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg"
+           style="${shadow};opacity:${op};cursor:pointer;">
+        <!-- teardrop pin body -->
+        <path d="M14 2 C7.4 2 2 7.4 2 14 C2 22 14 34 14 34 C14 34 26 22 26 14 C26 7.4 20.6 2 14 2Z"
+              fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+        <!-- inner circle -->
+        <circle cx="14" cy="14" r="6" fill="rgba(0,0,0,0.18)"/>
+        <!-- letter label -->
+        <text x="14" y="18" text-anchor="middle"
+              font-family="'Segoe UI',sans-serif" font-size="8" font-weight="700"
+              fill="${stroke}">${letter}</text>
+      </svg>`,
+    iconSize: [28, 36],
+    iconAnchor: [14, 34],
   });
-  L.marker([loc.lat, loc.lng], { icon })
+}
+
+const COLLECT_RADIUS_KM = 1.0; // must be within 1 km
+
+function distToSpawn(spawn) {
+  if (STATE.lat == null || STATE.lng == null) return Infinity;
+  return haversineKm(STATE.lat, STATE.lng, spawn.lat, spawn.lng);
+}
+
+function spawnPopupHTML(spawn) {
+  const typeLabel = spawn.type.label;
+  const rarityColor = spawn.type.rarity === 'rare' ? '#ef5350' : spawn.type.rarity === 'uncommon' ? '#ffd54f' : '#64b5f6';
+  const rarityName  = spawn.type.rarity.charAt(0).toUpperCase() + spawn.type.rarity.slice(1);
+
+  if (spawn.collected) {
+    return `<b>${typeLabel}</b> <span style="color:#aaa;font-size:.7rem;">[${rarityName}]</span><br>
+            <i style="color:#888;font-size:.78rem;">Already collected — respawns in 30 min</i>`;
+  }
+
+  const dist    = distToSpawn(spawn);
+  const inRange = dist <= COLLECT_RADIUS_KM;
+  const distStr = dist === Infinity ? 'Unknown distance'
+                : dist < 0.1 ? 'Right here!'
+                : dist < 1   ? `${Math.round(dist * 1000)} m away`
+                : `${dist.toFixed(1)} km away`;
+
+  const btnStyle = inRange
+    ? 'background:#4285F4;color:#fff;cursor:pointer;'
+    : 'background:#555;color:#aaa;cursor:not-allowed;';
+  const btnLabel = inRange ? '📦 Collect (1 ⚡)' : `🔒 Too far (${distStr})`;
+
+  return `
+    <b>${typeLabel}</b>
+    <span style="font-size:.7rem;color:${rarityColor};margin-left:4px;">[${rarityName}]</span><br>
+    <i style="font-size:.78rem;">${spawn.type.desc}</i><br>
+    <small style="color:#aaa;">+${spawn.type.xp} XP &nbsp;|&nbsp; 📍 ${distStr}</small><br>
+    <button onclick="collectSpawn('${spawn.id}')"
+            ${inRange ? '' : 'disabled'}
+            style="margin-top:6px;border:none;border-radius:6px;padding:6px 14px;font-weight:700;font-size:.82rem;${btnStyle}">
+      ${btnLabel}
+    </button>`;
+}
+
+function collectSpawn(spawnId) {
+  const spawn = ALL_SPAWNS.find(s => s.id === spawnId);
+  if (!spawn || spawn.collected) { showToast('Already collected!'); return; }
+
+  // Proximity gate
+  const dist = distToSpawn(spawn);
+  if (dist > COLLECT_RADIUS_KM) {
+    showToast(`🔒 Too far! Get within 1 km first. (${dist.toFixed(1)} km away)`);
+    return;
+  }
+
+  if (!checkEnergy(1)) return;
+
+  spawn.collected = true;
+
+  // Give loot
+  const lootPool = spawn.type.loot;
+  const picked = lootPool[Math.floor(Math.random() * lootPool.length)];
+  addItem(picked);
+  gainXP(spawn.type.xp);
+  const item = ITEMS[picked];
+  addLog(`${spawn.type.emoji} Collected ${spawn.type.label} → got ${item.icon} ${item.name}! (+${spawn.type.xp} XP)`, 'good');
+  showToast(`${spawn.type.emoji} Got ${item.name}!`);
+
+  // Refresh marker icon to greyed out
+  const marker = SPAWN_MARKERS[spawnId];
+  if (marker) {
+    marker.setIcon(makeSpawnIcon(spawn));
+    marker.getPopup().setContent(spawnPopupHTML(spawn));
+  }
+
+  updateInventoryUI();
+  updateHUD();
+  map.closePopup();
+}
+
+// ── Spawn respawn timer (30 min) ─────────────────────────────────────────────
+setInterval(() => {
+  ALL_SPAWNS.forEach(s => {
+    if (s.collected) {
+      s.collected = false;
+      const m = SPAWN_MARKERS[s.id];
+      if (m) { m.setIcon(makeSpawnIcon(s)); m.getPopup().setContent(spawnPopupHTML(s)); }
+    }
+  });
+}, 30 * 60 * 1000);
+
+// ── Build all spawns & place markers on map ──────────────────────────────────
+SPECIAL_LOCATIONS.forEach(loc => {
+  // City marker — gold star-pin SVG
+  const cityIcon = L.divIcon({
+    className: '',
+    html: `
+      <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg"
+           style="filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));cursor:pointer;">
+        <path d="M16 2 C8.3 2 2 8.3 2 16 C2 26 16 40 16 40 C16 40 30 26 30 16 C30 8.3 23.7 2 16 2Z"
+              fill="#e3b341" stroke="#fff" stroke-width="1.8"/>
+        <circle cx="16" cy="16" r="8" fill="rgba(0,0,0,0.15)"/>
+        <!-- star -->
+        <polygon points="16,9 17.5,13.5 22,13.5 18.5,16.5 19.8,21 16,18.5 12.2,21 13.5,16.5 10,13.5 14.5,13.5"
+                 fill="#fff" opacity="0.92"/>
+      </svg>`,
+    iconSize: [32, 42],
+    iconAnchor: [16, 40],
+  });
+  L.marker([loc.lat, loc.lng], { icon: cityIcon })
     .addTo(map)
     .bindPopup(`<b>${loc.emoji} ${loc.name}</b><br><i>${loc.type}</i><br>${loc.desc}`, { maxWidth: 220 });
+
+  // Field spawns
+  const spawns = generateCitySpawns(loc.lat, loc.lng, loc.id);
+  spawns.forEach(spawn => {
+    ALL_SPAWNS.push(spawn);
+    const marker = L.marker([spawn.lat, spawn.lng], { icon: makeSpawnIcon(spawn) })
+      .addTo(map)
+      .bindPopup(spawnPopupHTML(spawn), { maxWidth: 200 });
+    SPAWN_MARKERS[spawn.id] = marker;
+  });
 });
 
 // =============================================
@@ -918,14 +1139,38 @@ function doSpecialAction() {
   if (!checkEnergy(2)) return;
 
   const fn = STATE.currentLocation.specialAction?.fn;
-  if (fn === 'vegas') actionVegas();
-  else if (fn === 'nyc') actionNYC();
-  else if (fn === 'canyon') actionCanyon();
+  // Original cities
+  if      (fn === 'vegas')       actionVegas();
+  else if (fn === 'nyc')         actionNYC();
+  else if (fn === 'canyon')      actionCanyon();
   else if (fn === 'yellowstone') actionYellowstone();
-  else if (fn === 'miami') actionMiami();
-  else if (fn === 'seattle') actionSeattle();
-  else if (fn === 'nashville') actionNashville();
-  else if (fn === 'sanantonio') actionSanAntonio();
+  else if (fn === 'miami')       actionMiami();
+  else if (fn === 'seattle')     actionSeattle();
+  else if (fn === 'nashville')   actionNashville();
+  else if (fn === 'sanantonio')  actionSanAntonio();
+  // New cities — routed to named functions
+  else {
+    const fnMap = {
+      la:actionla, chicago:actionchicago, houston:actionhouston,
+      phoenix:actionphoenix, philly:actionphilly, sandiego:actionsandiego,
+      dallas:actiondallas, sanjose:actionsanjose, austin:actionaustin,
+      jacksonville:actionjacksonville, fortworth:actionfortworth,
+      columbus:actioncolumbus, charlotte:actioncharlotte,
+      indianapolis:actionindianapolis, sf:actionsf, olympia:actionolympia,
+      denver:actiondenver, dc:actiondc, boston:actionboston,
+      elpaso:actionelpaso, memphis:actionmemphis, portland:actionportland,
+      louisville:actionlouisville, baltimore:actionbaltimore,
+      milwaukee:actionmilwaukee, albuquerque:actionalbuquerque,
+      tucson:actiontucson, fresno:actionfresno, sacramento:actionsacramento,
+      mesa:actionmesa, omaha:actionomaha, csprings:actioncsprings,
+      raleigh:actionraleigh, longbeach:actionlongbeach, vbeach:actionvbeach,
+      atlanta:actionatlanta, minneapolis:actionminneapolis,
+      neworleans:actionneworleans, tampa:actiontampa, honolulu:actionhonolulu,
+      anchorage:actionanchorage, kansascity:actionkansascity, wichita:actionwichita,
+    };
+    if (fnMap[fn]) fnMap[fn]();
+    else showToast('Special action coming soon!');
+  }
 
   updateInventoryUI();
   updateHUD();
@@ -1010,6 +1255,98 @@ function actionSanAntonio() {
   addLog(`🏛️ Explored the Alamo! Discovered 🗺️ Ancient Map + 🦴 Fossil!`, 'special');
   showToast(`🏛️ History unearthed!`);
 }
+
+// ── New city special actions ────────────────────────────────────────────────
+function genericSpecial(emoji, label, loot1, loot2, gold, xp, logMsg, toast) {
+  if (loot1) addItem(loot1);
+  if (loot2) addItem(loot2);
+  if (gold)  { STATE.gold += gold; }
+  gainXP(xp);
+  addLog(`${emoji} ${logMsg}`, 'special');
+  showToast(`${emoji} ${toast}`);
+}
+
+function actionla()          { const g = Math.floor(Math.random()*200)+100; genericSpecial('🎬','LA','gem','luck_ticket',g,55,`Hit the Studio! Earned 🪙${g} + 💍 Gem + 🍀 Luck Ticket!`,`Star power! +🪙${g}`); }
+function actionchicago()     { genericSpecial('🌊','Chicago','fossil','crystal',60,50,`Lake Michigan dive! Found 🦴 Fossil + 💎 Crystal + 🪙60 gold!`,`Deep lake loot!`); }
+function actionhouston()     { genericSpecial('🚀','Houston','crystal','ancient_map',80,65,`Launch Pad search complete! Unearthed 💎 Crystal + 🗺️ Map + 🪙80!`,`Houston we found loot!`); }
+function actionphoenix()     { genericSpecial('🌵','Phoenix','fossil','lava_rock',40,55,`Desert dig complete! Found 🦴 Fossil + 🌋 Lava Rock!`,`Desert treasures unearthed!`); }
+function actionphilly()      { genericSpecial('🔔','Philly','ancient_map','fossil',70,60,`Liberty Bell Hunt! Found 🗺️ Map + 🦴 Fossil + 🪙70!`,`Ring of riches!`); }
+function actionsandiego()    { const g = Math.floor(Math.random()*80)+40; genericSpecial('⚓','San Diego','sand_dollar','gem',g,50,`Harbor search nets 🪙${g} + 🪙 Sand Dollar + 💍 Gem!`,`Harbor haul!`); }
+function actiondallas()      { const g = Math.floor(Math.random()*150)+80; genericSpecial('🤠','Dallas','coin_bag','luck_ticket',g,50,`Cattle Drive Raid! Rustled 🪙${g} + 👝 Coin Bag + 🍀 Ticket!`,`Yeehaw! +🪙${g}`); }
+function actionsanjose()     { BUFFS.xpBoost += 5; genericSpecial('💡','San Jose','crystal','ancient_map',0,80,`Silicon Heist! XP Boost + 💎 Crystal + 🗺️ Map unlocked!`,`Hack complete!`); }
+function actionaustin()      { const g = Math.floor(Math.random()*120)+60; genericSpecial('🎵','Austin','luck_ticket','coin_bag',g,45,`6th Street busking earned 🪙${g} + 🍀 Ticket + 👝 Bag!`,`Keep Austin loot-y! +🪙${g}`); }
+function actionjacksonville(){ genericSpecial('🐊','Jacksonville','fossil','herb',30,40,`Swamp dive! Unearthed 🦴 Fossil + 🌿 Herb + 🪙30!`,`Gator country cleared!`); }
+function actionfortworth()   { const g = Math.floor(Math.random()*100)+60; genericSpecial('🐴','Fort Worth','coin_bag','luck_ticket',g,48,`Stockyard search! Found 🪙${g} + 👝 Bag + 🍀 Ticket!`,`Stockyard riches! +🪙${g}`); }
+function actioncolumbus()    { genericSpecial('🏟️','Columbus','coin_bag','crystal',50,42,`Stadium sweep! Collected 👝 Coin Bag + 💎 Crystal + 🪙50!`,`Stadium loot collected!`); }
+function actioncharlotte()   { const g = Math.floor(Math.random()*200)+120; genericSpecial('🏦','Charlotte','gem','ancient_map',g,65,`Vault cracked! Secured 🪙${g} + 💍 Gem + 🗺️ Map!`,`Bank broken! +🪙${g}`); }
+function actionindianapolis(){ BUFFS.luck += 3; const g=50; genericSpecial('🏎️','Indianapolis','crystal','luck_ticket',g,50,`Pit stop raided! +🪙${g} + Lucky streak x3 + 💎 Crystal!`,`Pit stop gold!`); }
+function actionsf()          { genericSpecial('🌉','SF','gem','ancient_map',80,60,`Bay Area search! Fog lifted to reveal 💍 Gem + 🗺️ Map + 🪙80!`,`Golden Gate gold!`); }
+function actionolympia()     { genericSpecial('🏛️','Olympia','ancient_map','coin_bag',40,40,`Capitol dig! Recovered 🗺️ Map + 👝 Coin Bag + 🪙40!`,`Government secrets looted!`); }
+function actiondenver()      { genericSpecial('⛰️','Denver','crystal','lava_rock',50,55,`Mountain mine yields 💎 Crystal + 🌋 Lava Rock + 🪙50!`,`Mile-high loot!`); }
+function actiondc()          { genericSpecial('🏛️','DC','ancient_map','gem',90,70,`Monument Hunt! Uncovered 🗺️ Map + 💍 Gem + 🪙90!`,`Power & treasure!`); }
+function actionboston()      { genericSpecial('🫘','Boston','fossil','ancient_map',60,60,`Harbor search! Found 🦴 Fossil + 🗺️ Map + 🪙60!`,`Revolution-era relics!`); }
+function actionelpaso()      { genericSpecial('🌮','El Paso','fossil','herb',30,38,`Border Market! Picked up 🦴 Fossil + 🌿 Herb + 🪙30!`,`Border bounty!`); }
+function actionmemphis()     { BUFFS.luck += 2; const g=70; genericSpecial('🎷','Memphis','luck_ticket','coin_bag',g,45,`Beale St. search! Blues luck +2 + 🍀 Ticket + 🪙${g}!`,`Blues & gold!`); }
+function actionportland()    { genericSpecial('🌲','Portland','herb','crystal',40,42,`Forest forage! Gathered 🌿 Herb + 💎 Crystal + 🪙40!`,`Weird and wonderful!`); }
+function actionlouisville()  { BUFFS.luck += 2; const g=80; genericSpecial('🐎','Louisville','luck_ticket','coin_bag',g,48,`Derby Dash! Lucky +2 + 🍀 Ticket + 🪙${g}!`,`Derby gold! +🪙${g}`); }
+function actionbaltimore()   { genericSpecial('🦀','Baltimore','sand_dollar','gem',50,50,`Harbor dive! Surfaced 🪙 Sand Dollar + 💍 Gem + 🪙50!`,`Harbor haul!`); }
+function actionmilwaukee()   { genericSpecial('🍺','Milwaukee','coin_bag','crystal',60,42,`Vault search! Found 👝 Coin Bag + 💎 Crystal + 🪙60!`,`Brew city bounty!`); }
+function actionalbuquerque() { genericSpecial('🎈','Albuquerque','fossil','lava_rock',45,45,`Balloon chase lands 🦴 Fossil + 🌋 Lava Rock + 🪙45!`,`Sky-high loot!`); }
+function actiontucson()      { genericSpecial('🦂','Tucson','fossil','herb',30,40,`Sonoran dig! Unearthed 🦴 Fossil + 🌿 Herb + 🪙30!`,`Desert sting loot!`); }
+function actionfresno()      { genericSpecial('🍇','Fresno','herb','coin_bag',40,35,`Vineyard hunt! Picked 🌿 Herb + 👝 Coin Bag + 🪙40!`,`Valley harvest!`); }
+function actionsacramento()  { const g=Math.floor(Math.random()*150)+80; genericSpecial('⛏️','Sacramento','coin_bag','gem',g,60,`Gold pan hits! Panned 🪙${g} + 👝 Bag + 💍 Gem!`,`Gold Rush riches! +🪙${g}`); }
+function actionmesa()        { genericSpecial('🌄','Mesa','fossil','crystal',35,42,`Hohokam dig! Found 🦴 Fossil + 💎 Crystal + 🪙35!`,`Ancient desert loot!`); }
+function actionomaha()       { genericSpecial('🌽','Omaha','coin_bag','fossil',40,38,`Prairie dig! Unearthed 👝 Coin Bag + 🦴 Fossil + 🪙40!`,`Heartland haul!`); }
+function actioncsprings()    { genericSpecial('🏔️','Colorado Springs','crystal','lava_rock',50,52,`Peak climb yields 💎 Crystal + 🌋 Lava Rock + 🪙50!`,`Peak performance!`); }
+function actionraleigh()     { BUFFS.xpBoost += 3; genericSpecial('🔬','Raleigh','crystal','gem',40,70,`Lab raid! XP Boost x3 + 💎 Crystal + 💍 Gem + 🪙40!`,`Research jackpot!`); }
+function actionlongbeach()   { genericSpecial('🚢','Long Beach','gem','coin_bag',70,50,`Shipping raid! Seized 💍 Gem + 👝 Coin Bag + 🪙70!`,`Contraband collected!`); }
+function actionvbeach()      { genericSpecial('🌊','Virginia Beach','sand_dollar','crystal',40,42,`Beach comb! Found 🪙 Sand Dollar + 💎 Crystal + 🪙40!`,`Atlantic bounty!`); }
+function actionatlanta()     { genericSpecial('🍑','Atlanta','fossil','ancient_map',60,58,`Civil War dig! Unearthed 🦴 Fossil + 🗺️ Map + 🪙60!`,`Southern treasure!`); }
+function actionminneapolis() { genericSpecial('❄️','Minneapolis','crystal','fossil',50,50,`Ice fishing haul! Found 💎 Crystal + 🦴 Fossil + 🪙50!`,`Frozen riches!`); }
+function actionneworleans()  { BUFFS.luck += 4; genericSpecial('🎺','New Orleans','luck_ticket','gem',80,65,`Voodoo ritual! Lucky +4 + 🍀 Ticket + 💍 Gem + 🪙80!`,`Laissez les bons temps rouler!`); }
+function actiontampa()       { genericSpecial('🌴','Tampa','coin_bag','sand_dollar',70,52,`Pirate dig! Uncovered 👝 Coin Bag + 🪙 Sand Dollar + 🪙70!`,`Pirate gold!`); }
+function actionhonolulu()    { genericSpecial('🌺','Honolulu','lava_rock','sand_dollar',60,55,`Lava cave dive! Found 🌋 Lava Rock + 🪙 Sand Dollar + 🪙60!`,`Aloha riches!`); }
+function actionanchorage()   { genericSpecial('🐻','Anchorage','fossil','crystal',50,55,`Wilderness hunt! Bagged 🦴 Fossil + 💎 Crystal + 🪙50!`,`Frontier loot!`); }
+function actionkansascity()  { const g=Math.floor(Math.random()*120)+60; genericSpecial('🥩','Kansas City','coin_bag','luck_ticket',g,48,`Smokehouse dig! Smoked out 🪙${g} + 👝 Bag + 🍀 Ticket!`,`BBQ gold! +🪙${g}`); }
+function actionwichita()     { genericSpecial('✈️','Wichita','ancient_map','crystal',50,45,`Airfield search! Recovered 🗺️ Map + 💎 Crystal + 🪙50!`,`Airborne loot!`); }
+
+// ── Mid-size city actions ──────────────────────────────────────────────────
+function actionbuffalo()     { genericSpecial('🌊','Buffalo','fossil','crystal',45,45,`Niagara hunt! Found 🦴 Fossil + 💎 Crystal + 🪙45!`,`Niagara loot!`); }
+function actionpittsburgh()  { genericSpecial('⚙️','Pittsburgh','fossil','coin_bag',50,45,`River dredge yields 🦴 Fossil + 👝 Coin Bag + 🪙50!`,`Steel city haul!`); }
+function actioncincinnati()  { genericSpecial('🏛️','Cincinnati','coin_bag','ancient_map',55,48,`Riverfront dig! Found 👝 Bag + 🗺️ Map + 🪙55!`,`Queen City riches!`); }
+function actioncleveland()   { BUFFS.luck += 2; genericSpecial('🎸','Cleveland','luck_ticket','coin_bag',50,48,`Rock Hall raid! Lucky +2 + 🍀 Ticket + 🪙50!`,`Rock on!`); }
+function actionrichmond()    { genericSpecial('🏛️','Richmond','ancient_map','fossil',55,52,`Capitol cache! Recovered 🗺️ Map + 🦴 Fossil + 🪙55!`,`Confederate gold found!`); }
+function actionsaltlake()    { genericSpecial('🏔️','Salt Lake City','crystal','lava_rock',45,50,`Salt flat scan! Found 💎 Crystal + 🌋 Lava Rock + 🪙45!`,`Mountain crystals!`); }
+function actionhartford()    { genericSpecial('📋','Hartford','coin_bag','gem',60,50,`Vault search! Secured 👝 Bag + 💍 Gem + 🪙60!`,`Insurance paid off!`); }
+function actionprovidence()  { genericSpecial('🎨','Providence','gem','crystal',50,52,`Art cache! Found 💍 Gem + 💎 Crystal + 🪙50!`,`Creative gold!`); }
+function actionboise()       { genericSpecial('🌿','Boise','coin_bag','crystal',45,42,`River pan! Pulled 👝 Bag + 💎 Crystal + 🪙45!`,`Treasure Valley delivers!`); }
+function actionspokane()     { genericSpecial('🌲','Spokane','fossil','herb',40,40,`Trapper cache! Found 🦴 Fossil + 🌿 Herb + 🪙40!`,`Inland Empire loot!`); }
+function actiondesmoines()   { genericSpecial('🌽','Des Moines','coin_bag','fossil',40,38,`Pioneer dig! Unearthed 👝 Bag + 🦴 Fossil + 🪙40!`,`Prairie riches!`); }
+function actionmadison()     { genericSpecial('📚','Madison','crystal','ancient_map',50,52,`Research cache! Found 💎 Crystal + 🗺️ Map + 🪙50!`,`Academic gold!`); }
+function actionlittlerock()  { genericSpecial('🪨','Little Rock','fossil','coin_bag',45,42,`Riverbank dig! Found 🦴 Fossil + 👝 Bag + 🪙45!`,`Delta haul!`); }
+function actionjackson()     { BUFFS.luck += 2; genericSpecial('🌸','Jackson','fossil','herb',35,40,`Delta dig! Blues luck +2 + 🦴 Fossil + 🌿 Herb + 🪙35!`,`Delta blues gold!`); }
+function actionmontgomery()  { genericSpecial('🌺','Montgomery','ancient_map','fossil',45,48,`Historic hunt! Found 🗺️ Map + 🦴 Fossil + 🪙45!`,`History unearthed!`); }
+function actionbirmingham()  { genericSpecial('⚙️','Birmingham','crystal','lava_rock',50,50,`Mine cart run! Found 💎 Crystal + 🌋 Lava Rock + 🪙50!`,`Iron ore riches!`); }
+function actioncolumbiasc()  { genericSpecial('🌴','Columbia SC','ancient_map','fossil',45,45,`Battlefield dig! Found 🗺️ Map + 🦴 Fossil + 🪙45!`,`Palmetto gold!`); }
+function actionknoxville()   { genericSpecial('🏔️','Knoxville','crystal','gem',50,52,`Quarry dive! Found 💎 Crystal + 💍 Gem + 🪙50!`,`Marble city haul!`); }
+function actionlexington()   { BUFFS.luck += 2; genericSpecial('🐎','Lexington','luck_ticket','coin_bag',60,48,`Paddock hunt! Lucky +2 + 🍀 Ticket + 🪙60!`,`Bluegrass gold!`); }
+function actionrochester()   { genericSpecial('🌷','Rochester','crystal','ancient_map',50,50,`Lab scavenge! Found 💎 Crystal + 🗺️ Map + 🪙50!`,`Kodak moment!`); }
+function actiontulsa()       { genericSpecial('🛢️','Tulsa','lava_rock','coin_bag',55,50,`Oil field dig! Found 🌋 Rock + 👝 Bag + 🪙55!`,`Oil boom!`); }
+function actionokcity()      { genericSpecial('🤠','OKC','coin_bag','fossil',48,45,`Land run dig! Found 👝 Bag + 🦴 Fossil + 🪙48!`,`Sooner loot!`); }
+function actionsiouxfalls()  { genericSpecial('💧','Sioux Falls','crystal','fossil',40,42,`Falls crystal hunt! Found 💎 Crystal + 🦴 Fossil + 🪙40!`,`Quartzite riches!`); }
+function actionfargo()       { genericSpecial('❄️','Fargo','fossil','crystal',40,40,`River ice dig! Found 🦴 Fossil + 💎 Crystal + 🪙40!`,`Frozen loot!`); }
+function actionbillings()    { genericSpecial('🦅','Billings','fossil','coin_bag',45,42,`Rimrock hunt! Found 🦴 Fossil + 👝 Bag + 🪙45!`,`Big Sky loot!`); }
+function actioncheyenne()    { genericSpecial('🤠','Cheyenne','coin_bag','fossil',48,45,`Railroad cache! Found 👝 Bag + 🦴 Fossil + 🪙48!`,`Frontier gold!`); }
+function actionrapidcity()   { genericSpecial('🗿','Rapid City','gem','crystal',50,52,`Quarry gem hunt! Found 💍 Gem + 💎 Crystal + 🪙50!`,`Rushmore riches!`); }
+function actionsantafe()     { genericSpecial('🏺','Santa Fe','ancient_map','fossil',55,58,`Adobe dig! Found 🗺️ Map + 🦴 Fossil + 🪙55!`,`Ancient capital gold!`); }
+function actionlubbock()     { BUFFS.luck += 1; genericSpecial('🎸','Lubbock','luck_ticket','coin_bag',40,42,`Buddy Holly hunt! Lucky +1 + 🍀 Ticket + 🪙40!`,`West Texas loot!`); }
+function actioncorpuschristi(){ genericSpecial('⚓','Corpus Christi','sand_dollar','gem',45,48,`Shipwreck dive! Found 🪙 Sand Dollar + 💍 Gem + 🪙45!`,`Gulf treasure!`); }
+function actionlaredo()      { genericSpecial('🌵','Laredo','fossil','herb',30,35,`Rio Grande dig! Found 🦴 Fossil + 🌿 Herb + 🪙30!`,`Border bounty!`); }
+function actionshreveport()  { BUFFS.luck += 2; genericSpecial('🎲','Shreveport','coin_bag','luck_ticket',60,48,`Riverboat cache! Lucky +2 + 👝 Bag + 🍀 Ticket + 🪙60!`,`Riverboat gold!`); }
+function actionmobile()      { genericSpecial('⚓','Mobile','ancient_map','fossil',45,48,`Colonial dig! Found 🗺️ Map + 🦴 Fossil + 🪙45!`,`Spanish gold!`); }
+function actionsavannah()    { genericSpecial('🌳','Savannah','ancient_map','fossil',50,50,`Square dig! Found 🗺️ Map + 🦴 Fossil + 🪙50!`,`Southern gold!`); }
+function actioncharleston()  { genericSpecial('⚓','Charleston','ancient_map','gem',55,55,`Harbor dive! Found 🗺️ Map + 💍 Gem + 🪙55!`,`Holy City treasure!`); }
+function actiongreenville()  { genericSpecial('🏔️','Greenville','crystal','coin_bag',42,42,`Mill dig! Found 💎 Crystal + 👝 Bag + 🪙42!`,`Upstate haul!`); }
 
 // =============================================
 //  ITEM USE
