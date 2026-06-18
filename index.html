@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>GeoQuest — World Explorer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #f78166;
+    --gold: #e3b341;
+    --green: #3fb950;
+    --purple: #a371f7;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --font: 'Segoe UI', system-ui, sans-serif;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* === TOP BAR === */
+  #topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 1000;
+  }
+  #topbar h1 { font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: .03em; flex: 1; }
+  .stat-pill {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: .78rem; font-weight: 600;
+  }
+  .stat-pill .icon { font-size: 1rem; }
+  .stat-pill.gold .icon { color: var(--gold); }
+  .stat-pill.xp .icon { color: var(--purple); }
+  .stat-pill.energy .icon { color: var(--green); }
+
+  /* === MAIN LAYOUT === */
+  #main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* === MAP === */
+  #map-wrap {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+  }
+  #map {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* === SIDEBAR === */
+  #sidebar {
+    width: 300px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  /* === TABS === */
+  #tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px 4px;
+    background: none; border: none;
+    color: var(--muted); font-size: .78rem; font-weight: 600;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-panel { display: none; flex: 1; overflow-y: auto; padding: 12px; }
+  .tab-panel.active { display: flex; flex-direction: column; gap: 10px; }
+
+  /* === LOCATION CARD === */
+  #location-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+  }
+  #location-card h3 { font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  #location-name { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+  #location-type { font-size: .75rem; margin-top: 4px; }
+  #location-desc { font-size: .78rem; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+  /* === ACTION BUTTONS === */
+  #actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .action-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 8px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: .8rem;
+    font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    transition: background .15s, border-color .15s, transform .1s;
+  }
+  .action-btn:hover { background: var(--border); }
+  .action-btn:active { transform: scale(.97); }
+  .action-btn .ab-icon { font-size: 1.5rem; }
+  .action-btn.special { border-color: var(--gold); background: rgba(227,179,65,.08); }
+  .action-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* === SHOP === */
+  .shop-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .shop-item .si-icon { font-size: 1.6rem; }
+  .shop-item .si-info { flex: 1; }
+  .shop-item .si-name { font-size: .85rem; font-weight: 600; }
+  .shop-item .si-desc { font-size: .73rem; color: var(--muted); }
+  .shop-item .si-price { font-size: .82rem; font-weight: 700; color: var(--gold); }
+  .buy-btn {
+    background: var(--gold); color: #000; border: none;
+    border-radius: 6px; padding: 6px 12px;
+    font-size: .8rem; font-weight: 700; cursor: pointer;
+    transition: opacity .15s;
+  }
+  .buy-btn:hover { opacity: .85; }
+  .buy-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* === INVENTORY === */
+  .inv-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .inv-item .ii-icon { font-size: 1.5rem; }
+  .inv-item .ii-info { flex: 1; }
+  .inv-item .ii-name { font-size: .85rem; font-weight: 600; }
+  .inv-item .ii-qty { font-size: .73rem; color: var(--muted); }
+  .use-btn {
+    background: var(--accent); color: #000; border: none;
+    border-radius: 6px; padding: 6px 12px;
+    font-size: .8rem; font-weight: 700; cursor: pointer;
+    transition: opacity .15s;
+  }
+  .use-btn:hover { opacity: .85; }
+
+  /* === LOG === */
+  #log-list { display: flex; flex-direction: column; gap: 6px; }
+  .log-entry {
+    background: var(--surface2);
+    border-left: 3px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-size: .77rem;
+    line-height: 1.4;
+  }
+  .log-entry.good { border-color: var(--green); }
+  .log-entry.bad  { border-color: var(--accent2); }
+  .log-entry.info { border-color: var(--accent); }
+  .log-entry.special { border-color: var(--gold); }
+  .log-time { color: var(--muted); font-size: .7rem; margin-top: 3px; }
+
+  /* === TOAST === */
+  #toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 10px 20px;
+    font-size: .85rem; font-weight: 600;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s, transform .3s;
+    z-index: 9999; white-space: nowrap;
+    max-width: 90vw; text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* === BOTTOM NAV (mobile) === */
+  #bottom-nav {
+    display: none;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .bnav-btn {
+    flex: 1; padding: 10px 4px;
+    background: none; border: none;
+    color: var(--muted); font-size: .65rem; font-weight: 600;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .bnav-btn .bn-icon { font-size: 1.2rem; }
+  .bnav-btn.active { color: var(--accent); }
+
+  /* === GPS BUTTON === */
+  #gps-btn {
+    position: absolute; bottom: 16px; right: 16px; z-index: 900;
+    background: var(--accent); border: none; border-radius: 50%;
+    width: 48px; height: 48px; font-size: 1.3rem;
+    cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+  }
+  #gps-btn:hover { background: #79b8ff; }
+  #gps-btn.locating { background: var(--gold); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  /* === LEVEL BADGE === */
+  #level-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 8px; font-size: .75rem; font-weight: 700;
+    color: var(--purple);
+  }
+
+  /* === SECTION HEADER === */
+  .section-hdr { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  /* === SPECIAL BADGE === */
+  .badge-special { color: var(--gold); font-weight: 700; }
+  .badge-normal  { color: var(--accent); }
+  .badge-rest    { color: var(--muted); }
+
+  /* === PROGRESS BAR === */
+  .xp-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; }
+  .xp-bar { height: 100%; background: var(--purple); border-radius: 4px; transition: width .4s; }
+
+  /* === MAP MARKER OVERRIDES === */
+  .special-marker { filter: hue-rotate(40deg) brightness(1.2); }
+
+  /* MOBILE */
+  @media (max-width: 640px) {
+    #sidebar { display: none; width: 100%; border-left: none; border-top: 1px solid var(--border); }
+    #sidebar.mobile-show { display: flex; }
+    #map-wrap.mobile-hide { display: none; }
+    #bottom-nav { display: flex; }
+    #main { position: relative; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <h1>🌍 GeoQuest</h1>
+  <div id="level-badge">Lv 1</div>
+  <div class="stat-pill gold"><span class="icon">🪙</span><span id="gold-val">500</span></div>
+  <div class="stat-pill energy"><span class="icon">⚡</span><span id="energy-val">10</span>/10</div>
+  <div class="stat-pill xp"><span class="icon">⭐</span><span id="xp-val">0</span></div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- MAP -->
+  <div id="map-wrap">
+    <div id="map"></div>
+    <button id="gps-btn" title="Find my location">📍</button>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="tabs">
+      <button class="tab-btn active" data-tab="explore">🗺 Explore</button>
+      <button class="tab-btn" data-tab="shop">🏪 Shop</button>
+      <button class="tab-btn" data-tab="inventory">🎒 Bag</button>
+      <button class="tab-btn" data-tab="log">📜 Log</button>
+    </div>
+
+    <!-- EXPLORE TAB -->
+    <div class="tab-panel active" id="tab-explore">
+      <div id="location-card">
+        <h3>Current Location</h3>
+        <div id="location-name">Locating…</div>
+        <div id="location-type"></div>
+        <div id="location-desc">Enable location to begin your adventure.</div>
+      </div>
+
+      <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
+
+      <div class="section-hdr">Actions</div>
+      <div id="actions-grid">
+        <button class="action-btn" id="btn-forage" onclick="doForage()">
+          <span class="ab-icon">🌿</span>Forage
+        </button>
+        <button class="action-btn" id="btn-explore-area" onclick="doExploreArea()">
+          <span class="ab-icon">🔭</span>Scout
+        </button>
+        <button class="action-btn" id="btn-rest" onclick="doRest()">
+          <span class="ab-icon">🛏</span>Rest (+⚡)
+        </button>
+        <button class="action-btn" id="btn-collect" onclick="doCollect()">
+          <span class="ab-icon">💎</span>Collect
+        </button>
+        <button class="action-btn special" id="btn-special" onclick="doSpecialAction()" style="grid-column:span 2; display:none;">
+          <span class="ab-icon">✨</span><span id="special-label">Special</span>
+        </button>
+      </div>
+
+      <div class="section-hdr">Nearby Landmarks</div>
+      <div id="nearby-list"></div>
+    </div>
+
+    <!-- SHOP TAB -->
+    <div class="tab-panel" id="tab-shop">
+      <div class="section-hdr">General Store</div>
+      <div id="shop-list"></div>
+    </div>
+
+    <!-- INVENTORY TAB -->
+    <div class="tab-panel" id="tab-inventory">
+      <div class="section-hdr">Your Bag</div>
+      <div id="inv-list"></div>
+    </div>
+
+    <!-- LOG TAB -->
+    <div class="tab-panel" id="tab-log">
+      <div class="section-hdr">Adventure Log</div>
+      <div id="log-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV (mobile) -->
+<div id="bottom-nav">
+  <button class="bnav-btn active" data-tab="explore" onclick="mobileTab('explore',this)">
+    <span class="bn-icon">🗺</span>Explore
+  </button>
+  <button class="bnav-btn" data-tab="map" onclick="mobileTab('map',this)">
+    <span class="bn-icon">📍</span>Map
+  </button>
+  <button class="bnav-btn" data-tab="shop" onclick="mobileTab('shop',this)">
+    <span class="bn-icon">🏪</span>Shop
+  </button>
+  <button class="bnav-btn" data-tab="inventory" onclick="mobileTab('inventory',this)">
+    <span class="bn-icon">🎒</span>Bag
+  </button>
+  <button class="bnav-btn" data-tab="log" onclick="mobileTab('log',this)">
+    <span class="bn-icon">📜</span>Log
+  </button>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// =============================================
+//  GAME STATE
+// =============================================
+const STATE = {
+  gold: 500,
+  xp: 0,
+  level: 1,
+  energy: 10,
+  maxEnergy: 10,
+  inventory: {},
+  lat: null,
+  lng: null,
+  currentLocation: null,
+  lastEnergyRegen: Date.now(),
+  cooldowns: {},
+};
+
+// XP needed per level
+function xpForLevel(lv) { return lv * 100; }
+
+// =============================================
+//  ITEMS DEFINITION
+// =============================================
+const ITEMS = {
+  // Collectibles / materials
+  herb:        { name: 'Herb',         icon: '🌿', desc: 'A common herb. Sell or craft.',       sellPrice: 10 },
+  crystal:     { name: 'Crystal',      icon: '💎', desc: 'A shimmering crystal shard.',         sellPrice: 40 },
+  coin_bag:    { name: 'Coin Bag',     icon: '👝', desc: 'A small bag of coins.',               sellPrice: 80 },
+  ancient_map: { name: 'Ancient Map',  icon: '🗺️', desc: 'Reveals a hidden cache nearby.',     sellPrice: 150 },
+  gem:         { name: 'Gem',          icon: '💍', desc: 'Rare. Worth a fortune.',              sellPrice: 300 },
+  fossil:      { name: 'Fossil',       icon: '🦴', desc: 'A dinosaur relic.',                  sellPrice: 200 },
+  sand_dollar: { name: 'Sand Dollar',  icon: '🪙', desc: 'A perfect sand dollar.',              sellPrice: 30 },
+  lava_rock:   { name: 'Lava Rock',    icon: '🌋', desc: 'Solidified lava from a volcano.',    sellPrice: 60 },
+
+  // Tickets / boosts
+  luck_ticket: { name: 'Luck Ticket',  icon: '🍀', desc: 'Increases drop chance for 3 forages.', sellPrice: 50,  usable: true },
+  energy_drink:{ name: 'Energy Drink', icon: '⚡', desc: 'Instantly restores 5 energy.',        sellPrice: 30,  usable: true },
+  treasure_map:{ name: 'Treasure Map', icon: '🗺️', desc: 'Guarantees a rare item on next forage.', sellPrice: 100, usable: true },
+  xp_boost:    { name: 'XP Boost',     icon: '⭐', desc: 'Doubles XP for 5 actions.',           sellPrice: 80,  usable: true },
+  magnet:      { name: 'Collector Magnet', icon: '🧲', desc: 'Auto-collects 3 free items.',     sellPrice: 60,  usable: true },
+
+  // Shop-exclusive
+  sturdy_pack: { name: 'Sturdy Pack',  icon: '🎒', desc: 'Increases item drop rate permanently.', sellPrice: 200 },
+  compass:     { name: 'Compass',      icon: '🧭', desc: 'Shows distance to nearest landmark.',  sellPrice: 120 },
+};
+
+// Active buffs
+const BUFFS = { luck: 0, xpBoost: 0, treasureMap: false, magnet: 0 };
+
+// =============================================
+//  SHOP CATALOG
+// =============================================
+const SHOP_ITEMS = [
+  { id: 'luck_ticket',  price: 120 },
+  { id: 'energy_drink', price: 80  },
+  { id: 'treasure_map', price: 250 },
+  { id: 'xp_boost',     price: 180 },
+  { id: 'magnet',       price: 150 },
+  { id: 'sturdy_pack',  price: 500 },
+  { id: 'compass',      price: 300 },
+];
+
+// =============================================
+//  SPECIAL LOCATIONS
+// =============================================
+const SPECIAL_LOCATIONS = [
+  {
+    id: 'las_vegas',
+    name: 'Las Vegas, NV',
+    lat: 36.1699, lng: -115.1398,
+    type: 'Casino City',
+    emoji: '🎰',
+    desc: 'The city of luck! Gain Luck Tickets, spin for bonus gold, and double your find rates.',
+    specialAction: { label: '🎰 Gamble for Jackpot', fn: 'vegas' },
+    passiveBonus: 'luck_boost',
+    dropBonus: ['luck_ticket', 'coin_bag', 'gem'],
+  },
+  {
+    id: 'new_york',
+    name: 'New York City, NY',
+    lat: 40.7128, lng: -74.0060,
+    type: 'Mega City',
+    emoji: '🗽',
+    desc: 'The city that never sleeps. Trade at premium prices and unlock the Wall Street Cache.',
+    specialAction: { label: '🗽 Visit Wall Street', fn: 'nyc' },
+    passiveBonus: 'gold_boost',
+    dropBonus: ['coin_bag', 'ancient_map', 'gem'],
+  },
+  {
+    id: 'grand_canyon',
+    name: 'Grand Canyon, AZ',
+    lat: 36.1069, lng: -112.1129,
+    type: 'Natural Wonder',
+    emoji: '🏜️',
+    desc: 'Ancient rocks and hidden fossils. Dig for rare geological finds.',
+    specialAction: { label: '⛏️ Deep Excavation', fn: 'canyon' },
+    passiveBonus: 'rare_boost',
+    dropBonus: ['fossil', 'crystal', 'ancient_map'],
+  },
+  {
+    id: 'yellowstone',
+    name: 'Yellowstone, WY',
+    lat: 44.4279, lng: -110.5885,
+    type: 'National Park',
+    emoji: '🌋',
+    desc: 'Geysers and wildlife abound. Collect rare lava rocks and nature bounties.',
+    specialAction: { label: '🌋 Geyser Ritual', fn: 'yellowstone' },
+    passiveBonus: 'energy_regen',
+    dropBonus: ['lava_rock', 'fossil', 'herb'],
+  },
+  {
+    id: 'miami',
+    name: 'Miami, FL',
+    lat: 25.7617, lng: -80.1918,
+    type: 'Beach City',
+    emoji: '🏖️',
+    desc: 'Sunny shores and ocean treasures. Dive for sand dollars and sea gems.',
+    specialAction: { label: '🤿 Dive for Treasure', fn: 'miami' },
+    passiveBonus: 'water_loot',
+    dropBonus: ['sand_dollar', 'gem', 'crystal'],
+  },
+  {
+    id: 'seattle',
+    name: 'Seattle, WA',
+    lat: 47.6062, lng: -122.3321,
+    type: 'Tech Hub',
+    emoji: '🌧️',
+    desc: 'The tech capital. Hack for XP bonuses and find rare map fragments.',
+    specialAction: { label: '💻 Hack the Grid', fn: 'seattle' },
+    passiveBonus: 'xp_boost',
+    dropBonus: ['ancient_map', 'crystal', 'gem'],
+  },
+  {
+    id: 'nashville',
+    name: 'Nashville, TN',
+    lat: 36.1627, lng: -86.7816,
+    type: 'Music City',
+    emoji: '🎸',
+    desc: 'Music heals the soul. Perform for gold and earn lucky charms.',
+    specialAction: { label: '🎸 Street Perform', fn: 'nashville' },
+    passiveBonus: 'morale',
+    dropBonus: ['coin_bag', 'luck_ticket', 'herb'],
+  },
+  {
+    id: 'san_antonio',
+    name: 'San Antonio, TX',
+    lat: 29.4241, lng: -98.4936,
+    type: 'Historic City',
+    emoji: '⚔️',
+    desc: 'Remember the Alamo! Historic relics and ancient artifacts wait to be uncovered.',
+    specialAction: { label: '🏛️ Explore the Alamo', fn: 'sanantonio' },
+    passiveBonus: 'history_loot',
+    dropBonus: ['ancient_map', 'fossil', 'coin_bag'],
+  },
+];
+
+// Generic location types for everywhere else
+const GENERIC_TYPES = [
+  { type: 'Small Town', emoji: '🏘️', desc: 'A quiet town. Not much here, but foraging is peaceful.', dropBonus: ['herb', 'coin_bag'] },
+  { type: 'Countryside', emoji: '🌾', desc: 'Rolling fields and fresh air. Great for foraging herbs.', dropBonus: ['herb', 'crystal'] },
+  { type: 'Suburb', emoji: '🏡', desc: 'Neighborhood streets. Occasionally someone drops something valuable.', dropBonus: ['coin_bag', 'herb'] },
+  { type: 'City', emoji: '🏙️', desc: 'A regular city. Active trade and decent loot.', dropBonus: ['coin_bag', 'crystal', 'ancient_map'] },
+  { type: 'Rural Area', emoji: '🌲', desc: 'Off the beaten path. Nature provides.', dropBonus: ['herb', 'fossil', 'crystal'] },
+  { type: 'Coastal Area', emoji: '🌊', desc: 'Near the shore. Sand dollars wash in.', dropBonus: ['sand_dollar', 'herb', 'crystal'] },
+];
+
+// =============================================
+//  LEAFLET MAP SETUP
+// =============================================
+const map = L.map('map', { zoomControl: true }).setView([39.5, -98.35], 4);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19,
+}).addTo(map);
+
+// Force Leaflet to recalculate size after layout settles
+setTimeout(() => map.invalidateSize(), 100);
+window.addEventListener('resize', () => map.invalidateSize());
+
+let playerMarker = null;
+let playerCircle = null;
+
+function makePlayerIcon() {
+  return L.divIcon({
+    className: '',
+    html: `
+      <div style="position:relative;width:24px;height:24px;">
+        <style>
+          @keyframes gps-pulse {
+            0%   { transform:translate(-50%,-50%) scale(0.6); opacity:0.8; }
+            100% { transform:translate(-50%,-50%) scale(2.8); opacity:0; }
+          }
+        </style>
+        <!-- Outer pulse ring -->
+        <div style="
+          position:absolute;top:50%;left:50%;
+          width:24px;height:24px;border-radius:50%;
+          background:rgba(66,133,244,0.25);
+          animation:gps-pulse 2s ease-out infinite;
+        "></div>
+        <!-- White shadow ring -->
+        <div style="
+          position:absolute;top:50%;left:50%;
+          transform:translate(-50%,-50%);
+          width:20px;height:20px;border-radius:50%;
+          background:#fff;
+          box-shadow:0 2px 8px rgba(0,0,0,0.3);
+        "></div>
+        <!-- Blue center dot -->
+        <div style="
+          position:absolute;top:50%;left:50%;
+          transform:translate(-50%,-50%);
+          width:13px;height:13px;border-radius:50%;
+          background:#4285F4;
+        "></div>
+      </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+}
+
+// Add special location markers
+SPECIAL_LOCATIONS.forEach(loc => {
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="font-size:1.4rem;filter:drop-shadow(0 0 6px gold);" title="${loc.name}">${loc.emoji}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+  L.marker([loc.lat, loc.lng], { icon })
+    .addTo(map)
+    .bindPopup(`<b>${loc.emoji} ${loc.name}</b><br><i>${loc.type}</i><br>${loc.desc}`, { maxWidth: 220 });
+});
+
+// =============================================
+//  GPS
+// =============================================
+document.getElementById('gps-btn').addEventListener('click', locatePlayer);
+
+function locatePlayer() {
+  const btn = document.getElementById('gps-btn');
+  btn.classList.add('locating');
+  btn.textContent = '⏳';
+
+  if (!navigator.geolocation) {
+    showToast('❌ GPS not supported on this device');
+    btn.classList.remove('locating');
+    btn.textContent = '📍';
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      STATE.lat = pos.coords.latitude;
+      STATE.lng = pos.coords.longitude;
+      btn.classList.remove('locating');
+      btn.textContent = '📍';
+      updatePlayerOnMap(STATE.lat, STATE.lng, pos.coords.accuracy);
+      resolveLocation(STATE.lat, STATE.lng);
+    },
+    err => {
+      btn.classList.remove('locating');
+      btn.textContent = '📍';
+      showToast('📍 GPS error — using demo location (San Antonio, TX)');
+      // Demo fallback
+      STATE.lat = 29.4241;
+      STATE.lng = -98.4936;
+      updatePlayerOnMap(STATE.lat, STATE.lng, 100);
+      resolveLocation(STATE.lat, STATE.lng);
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+function updatePlayerOnMap(lat, lng, accuracy) {
+  if (playerMarker) { playerMarker.remove(); }
+  if (playerCircle) { playerCircle.remove(); }
+  playerMarker = L.marker([lat, lng], { icon: makePlayerIcon() }).addTo(map).bindPopup('You are here!');
+  playerCircle = L.circle([lat, lng], {
+    radius: accuracy,
+    color: '#4285F4',
+    fillColor: '#4285F4',
+    fillOpacity: 0.12,
+    weight: 1.5,
+    opacity: 0.4,
+  }).addTo(map);
+  map.setView([lat, lng], 13);
+}
+
+// =============================================
+//  LOCATION RESOLUTION
+// =============================================
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function resolveLocation(lat, lng) {
+  // Check special locations within 30km
+  let closest = null, closestDist = Infinity;
+  SPECIAL_LOCATIONS.forEach(loc => {
+    const d = haversineKm(lat, lng, loc.lat, loc.lng);
+    if (d < closestDist) { closestDist = d; closest = { loc, dist: d }; }
+  });
+
+  if (closest && closest.dist < 30) {
+    STATE.currentLocation = { ...closest.loc, isSpecial: true, distKm: closest.dist };
+  } else {
+    // Pick a generic type based on rough coords hash
+    const idx = Math.abs(Math.round(lat * 10 + lng)) % GENERIC_TYPES.length;
+    const gen = GENERIC_TYPES[idx];
+    STATE.currentLocation = {
+      name: `Locating neighborhood…`,
+      type: gen.type,
+      emoji: gen.emoji,
+      desc: gen.desc,
+      dropBonus: gen.dropBonus,
+      isSpecial: false,
+    };
+    updateLocationUI();
+    // Try reverse geocode city name (best-effort)
+    fetchCityName(lat, lng).then(name => {
+      if (name) STATE.currentLocation.name = name;
+      updateLocationUI();
+    });
+  }
+  updateLocationUI();
+  updateNearbyList(lat, lng);
+  addLog(`📍 Arrived at ${STATE.currentLocation.name}`, 'info');
+}
+
+async function fetchCityName(lat, lng) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, { headers: { 'Accept-Language': 'en' } });
+    const d = await r.json();
+    const a = d.address || {};
+    // Build a specific location string: neighborhood/suburb + city
+    const neighborhood = a.neighbourhood || a.suburb || a.quarter || a.hamlet || a.village || '';
+    const city = a.city || a.town || a.county || '';
+    const state = a.state_code || a.state || '';
+    if (neighborhood && city) return `${neighborhood}, ${city}, ${state}`;
+    if (city) return `${city}, ${state}`;
+    return d.display_name?.split(',').slice(0, 2).join(',') || null;
+  } catch { return null; }
+}
+
+function updateLocationUI() {
+  const loc = STATE.currentLocation;
+  if (!loc) return;
+  document.getElementById('location-name').textContent = `${loc.emoji || '📍'} ${loc.name}`;
+  const typeEl = document.getElementById('location-type');
+  typeEl.innerHTML = `<span class="${loc.isSpecial ? 'badge-special' : 'badge-normal'}">${loc.isSpecial ? '✨ Special: ' : ''}${loc.type}</span>`;
+  document.getElementById('location-desc').textContent = loc.desc;
+
+  // Show/hide special action
+  const btn = document.getElementById('btn-special');
+  if (loc.isSpecial && loc.specialAction) {
+    btn.style.display = 'flex';
+    document.getElementById('special-label').textContent = loc.specialAction.label;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function updateNearbyList(lat, lng) {
+  const list = document.getElementById('nearby-list');
+  const sorted = SPECIAL_LOCATIONS.map(loc => ({ ...loc, dist: haversineKm(lat, lng, loc.lat, loc.lng) }))
+    .sort((a, b) => a.dist - b.dist).slice(0, 5);
+
+  list.innerHTML = sorted.map(loc => `
+    <div class="inv-item" style="margin-bottom:6px;cursor:pointer;" onclick="flyTo(${loc.lat},${loc.lng})">
+      <div class="ii-icon">${loc.emoji}</div>
+      <div class="ii-info">
+        <div class="ii-name">${loc.name}</div>
+        <div class="ii-qty">${loc.dist < 1 ? '< 1 km' : Math.round(loc.dist) + ' km away'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function flyTo(lat, lng) {
+  map.flyTo([lat, lng], 12, { duration: 1.5 });
+  openTab('map');
+}
+
+// =============================================
+//  CORE ACTIONS
+// =============================================
+const CD = 15000; // 15s cooldown per action
+
+function checkCooldown(key) {
+  const now = Date.now();
+  if (STATE.cooldowns[key] && now - STATE.cooldowns[key] < CD) {
+    const left = Math.ceil((CD - (now - STATE.cooldowns[key])) / 1000);
+    showToast(`⏳ Wait ${left}s…`);
+    return false;
+  }
+  STATE.cooldowns[key] = now;
+  return true;
+}
+
+function checkEnergy(cost = 1) {
+  if (STATE.energy < cost) {
+    showToast('⚡ No energy! Rest or drink an Energy Drink.');
+    return false;
+  }
+  STATE.energy -= cost;
+  updateHUD();
+  return true;
+}
+
+function doForage() {
+  if (!checkCooldown('forage')) return;
+  if (!checkEnergy(1)) return;
+  if (!STATE.lat) { showToast('📍 Enable GPS first!'); return; }
+
+  const loc = STATE.currentLocation;
+  const pool = loc ? (loc.dropBonus || ['herb']) : ['herb'];
+
+  // Apply luck/treasure map
+  let roll = Math.random();
+  if (BUFFS.luck > 0) { roll = Math.max(roll, Math.random()); BUFFS.luck--; }
+  if (BUFFS.treasureMap) { roll = 0.95; BUFFS.treasureMap = false; }
+
+  let found;
+  if (roll > 0.85) {
+    // Rare: gem or ancient_map
+    found = Math.random() > 0.5 ? 'gem' : 'ancient_map';
+  } else if (roll > 0.55) {
+    // Uncommon from pool
+    found = pool[Math.floor(Math.random() * pool.length)];
+  } else {
+    // Common
+    found = Math.random() > 0.5 ? 'herb' : 'crystal';
+  }
+
+  // Pack perk
+  if (STATE.inventory['sturdy_pack'] && Math.random() > 0.5) {
+    addItem(found);
+  }
+
+  addItem(found);
+  gainXP(15);
+  const item = ITEMS[found];
+  addLog(`🌿 Foraged → found ${item.icon} ${item.name}!`, 'good');
+  showToast(`${item.icon} Found ${item.name}!`);
+
+  // Magnet
+  if (BUFFS.magnet > 0) {
+    const b = pool[Math.floor(Math.random() * pool.length)];
+    addItem(b); BUFFS.magnet--;
+    addLog(`🧲 Magnet auto-collected ${ITEMS[b].icon} ${ITEMS[b].name}!`, 'info');
+  }
+
+  updateInventoryUI();
+}
+
+function doExploreArea() {
+  if (!checkCooldown('scout')) return;
+  if (!checkEnergy(1)) return;
+  if (!STATE.lat) { showToast('📍 Enable GPS first!'); return; }
+
+  // Scout reveals gold or XP
+  const roll = Math.random();
+  let xpGain = 20, goldGain = 0;
+  if (roll > 0.7) {
+    goldGain = Math.floor(Math.random() * 80) + 20;
+    addLog(`🔭 Scouted the area — found 🪙${goldGain} gold!`, 'good');
+    showToast(`🔭 Found 🪙${goldGain} gold!`);
+  } else if (roll > 0.4) {
+    xpGain = 35;
+    addLog(`🔭 Scouted — discovered a hidden path! +35 XP`, 'good');
+    showToast(`🔭 Hidden path! +35 XP`);
+  } else {
+    addLog(`🔭 Scouted the area — nothing unusual found.`, 'info');
+    showToast(`🔭 Nothing found this time.`);
+  }
+  STATE.gold += goldGain;
+  gainXP(xpGain);
+  updateHUD();
+}
+
+function doRest() {
+  if (!checkCooldown('rest')) return;
+  const restored = Math.min(3, STATE.maxEnergy - STATE.energy);
+  STATE.energy = Math.min(STATE.energy + 3, STATE.maxEnergy);
+  gainXP(5);
+  addLog(`🛏 Rested and recovered ${restored} energy.`, 'info');
+  showToast(`🛏 +${restored} ⚡ Energy`);
+  updateHUD();
+}
+
+function doCollect() {
+  if (!checkCooldown('collect')) return;
+  if (!checkEnergy(1)) return;
+  if (!STATE.lat) { showToast('📍 Enable GPS first!'); return; }
+
+  // Collect is rarer but better loot
+  const roll = Math.random();
+  if (roll > 0.6) {
+    const items = ['coin_bag', 'fossil', 'crystal'];
+    const picked = items[Math.floor(Math.random() * items.length)];
+    addItem(picked);
+    gainXP(25);
+    addLog(`💎 Collected ${ITEMS[picked].icon} ${ITEMS[picked].name}!`, 'good');
+    showToast(`💎 Collected ${ITEMS[picked].name}!`);
+  } else {
+    gainXP(10);
+    addLog(`💎 Nothing to collect here right now.`, 'info');
+    showToast('💎 Nothing found this time.');
+  }
+  updateInventoryUI();
+  updateHUD();
+}
+
+// =============================================
+//  SPECIAL LOCATION ACTIONS
+// =============================================
+function doSpecialAction() {
+  if (!STATE.currentLocation?.isSpecial) return;
+  if (!checkCooldown('special')) return;
+  if (!checkEnergy(2)) return;
+
+  const fn = STATE.currentLocation.specialAction?.fn;
+  if (fn === 'vegas') actionVegas();
+  else if (fn === 'nyc') actionNYC();
+  else if (fn === 'canyon') actionCanyon();
+  else if (fn === 'yellowstone') actionYellowstone();
+  else if (fn === 'miami') actionMiami();
+  else if (fn === 'seattle') actionSeattle();
+  else if (fn === 'nashville') actionNashville();
+  else if (fn === 'sanantonio') actionSanAntonio();
+
+  updateInventoryUI();
+  updateHUD();
+}
+
+function actionVegas() {
+  const roll = Math.random();
+  if (roll > 0.7) {
+    const win = Math.floor(Math.random() * 300) + 100;
+    STATE.gold += win;
+    addItem('luck_ticket');
+    gainXP(50);
+    addLog(`🎰 JACKPOT! Won 🪙${win} gold and a 🍀 Luck Ticket!`, 'special');
+    showToast(`🎰 JACKPOT! +🪙${win}`);
+  } else if (roll > 0.3) {
+    addItem('luck_ticket');
+    gainXP(30);
+    addLog(`🎰 Lucky spin — won a 🍀 Luck Ticket!`, 'good');
+    showToast(`🎰 Won a Luck Ticket!`);
+  } else {
+    const lost = Math.min(STATE.gold, Math.floor(Math.random() * 50) + 10);
+    STATE.gold -= lost;
+    gainXP(10);
+    addLog(`🎰 Bad luck — lost 🪙${lost} gold at the casino.`, 'bad');
+    showToast(`🎰 Lost 🪙${lost}… Better luck next time.`);
+  }
+}
+
+function actionNYC() {
+  const bonus = Math.floor(Math.random() * 200) + 100;
+  STATE.gold += bonus;
+  addItem('coin_bag');
+  gainXP(60);
+  addLog(`🗽 Wall Street Cache unlocked! Earned 🪙${bonus} + 👝 Coin Bag!`, 'special');
+  showToast(`🗽 Wall Street! +🪙${bonus}`);
+}
+
+function actionCanyon() {
+  addItem('fossil'); addItem('crystal');
+  gainXP(70);
+  addLog(`⛏️ Deep excavation complete! Unearthed 🦴 Fossil + 💎 Crystal!`, 'special');
+  showToast(`⛏️ Excavated rare fossils!`);
+}
+
+function actionYellowstone() {
+  STATE.energy = Math.min(STATE.energy + 5, STATE.maxEnergy);
+  addItem('lava_rock');
+  gainXP(50);
+  addLog(`🌋 Geyser ritual complete! Restored 5 ⚡ energy + 🌋 Lava Rock!`, 'special');
+  showToast(`🌋 Energy restored by geyser!`);
+}
+
+function actionMiami() {
+  addItem('sand_dollar'); addItem('gem');
+  const g = Math.floor(Math.random() * 100) + 50;
+  STATE.gold += g;
+  gainXP(55);
+  addLog(`🤿 Ocean dive! Found 🪙 ${g} gold + 🪙 Sand Dollar + 💍 Gem!`, 'special');
+  showToast(`🤿 Treasure from the deep!`);
+}
+
+function actionSeattle() {
+  BUFFS.xpBoost += 5;
+  addItem('ancient_map');
+  gainXP(80);
+  addLog(`💻 Grid hacked! XP Boost active for 5 actions + got 🗺️ Ancient Map!`, 'special');
+  showToast(`💻 XP Boost activated!`);
+}
+
+function actionNashville() {
+  const g = Math.floor(Math.random() * 150) + 80;
+  STATE.gold += g;
+  addItem('luck_ticket');
+  gainXP(45);
+  addLog(`🎸 Street performance earned 🪙${g} tips + 🍀 Luck Ticket!`, 'special');
+  showToast(`🎸 The crowd loved it! +🪙${g}`);
+}
+
+function actionSanAntonio() {
+  addItem('ancient_map'); addItem('fossil');
+  gainXP(65);
+  addLog(`🏛️ Explored the Alamo! Discovered 🗺️ Ancient Map + 🦴 Fossil!`, 'special');
+  showToast(`🏛️ History unearthed!`);
+}
+
+// =============================================
+//  ITEM USE
+// =============================================
+function useItem(id) {
+  if (!STATE.inventory[id] || STATE.inventory[id] <= 0) return;
+
+  if (id === 'luck_ticket') {
+    BUFFS.luck += 3;
+    removeItem(id);
+    addLog(`🍀 Luck Ticket used — boosted luck for 3 forages!`, 'good');
+    showToast(`🍀 Lucky! +3 lucky forages`);
+  } else if (id === 'energy_drink') {
+    STATE.energy = Math.min(STATE.energy + 5, STATE.maxEnergy);
+    removeItem(id);
+    addLog(`⚡ Energy Drink consumed — +5 energy!`, 'good');
+    showToast(`⚡ +5 Energy!`);
+  } else if (id === 'treasure_map') {
+    BUFFS.treasureMap = true;
+    removeItem(id);
+    addLog(`🗺️ Treasure Map activated — next forage guaranteed rare!`, 'good');
+    showToast(`🗺️ Next forage = rare item!`);
+  } else if (id === 'xp_boost') {
+    BUFFS.xpBoost += 5;
+    removeItem(id);
+    addLog(`⭐ XP Boost active — double XP for 5 actions!`, 'good');
+    showToast(`⭐ 2× XP for 5 actions!`);
+  } else if (id === 'magnet') {
+    BUFFS.magnet += 3;
+    removeItem(id);
+    addLog(`🧲 Magnet activated — auto-collect next 3 items!`, 'good');
+    showToast(`🧲 Auto-collect activated!`);
+  } else {
+    showToast(`This item can't be used directly.`);
+  }
+
+  updateInventoryUI();
+  updateHUD();
+}
+
+function sellItem(id) {
+  if (!STATE.inventory[id] || STATE.inventory[id] <= 0) return;
+  const item = ITEMS[id];
+  STATE.gold += item.sellPrice;
+  removeItem(id);
+  addLog(`💰 Sold ${item.icon} ${item.name} for 🪙${item.sellPrice}`, 'good');
+  showToast(`💰 Sold for 🪙${item.sellPrice}`);
+  updateInventoryUI();
+  updateHUD();
+}
+
+// =============================================
+//  SHOP
+// =============================================
+function buyItem(id, price) {
+  if (STATE.gold < price) { showToast('🪙 Not enough gold!'); return; }
+  STATE.gold -= price;
+  addItem(id);
+  const item = ITEMS[id];
+  addLog(`🛒 Bought ${item.icon} ${item.name} for 🪙${price}`, 'info');
+  showToast(`${item.icon} Purchased!`);
+  updateInventoryUI();
+  updateHUD();
+}
+
+function renderShop() {
+  const list = document.getElementById('shop-list');
+  list.innerHTML = SHOP_ITEMS.map(si => {
+    const item = ITEMS[si.id];
+    return `
+      <div class="shop-item">
+        <div class="si-icon">${item.icon}</div>
+        <div class="si-info">
+          <div class="si-name">${item.name}</div>
+          <div class="si-desc">${item.desc}</div>
+          <div class="si-price">🪙 ${si.price}</div>
+        </div>
+        <button class="buy-btn" onclick="buyItem('${si.id}', ${si.price})">Buy</button>
+      </div>`;
+  }).join('');
+}
+
+// =============================================
+//  INVENTORY
+// =============================================
+function addItem(id, qty = 1) {
+  STATE.inventory[id] = (STATE.inventory[id] || 0) + qty;
+}
+function removeItem(id) {
+  STATE.inventory[id] = Math.max(0, (STATE.inventory[id] || 1) - 1);
+  if (STATE.inventory[id] === 0) delete STATE.inventory[id];
+}
+
+function updateInventoryUI() {
+  const list = document.getElementById('inv-list');
+  const entries = Object.entries(STATE.inventory);
+  if (!entries.length) {
+    list.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:20px;">Your bag is empty.<br>Start foraging!</div>`;
+    return;
+  }
+  list.innerHTML = entries.map(([id, qty]) => {
+    const item = ITEMS[id];
+    if (!item) return '';
+    const useBtn = item.usable ? `<button class="use-btn" onclick="useItem('${id}')">Use</button>` : '';
+    return `
+      <div class="inv-item">
+        <div class="ii-icon">${item.icon}</div>
+        <div class="ii-info">
+          <div class="ii-name">${item.name} ×${qty}</div>
+          <div class="ii-qty">${item.desc}</div>
+        </div>
+        ${useBtn}
+        <button class="buy-btn" style="background:var(--accent2);" onclick="sellItem('${id}')">Sell 🪙${item.sellPrice}</button>
+      </div>`;
+  }).join('');
+}
+
+// =============================================
+//  XP & LEVELING
+// =============================================
+function gainXP(base) {
+  const mult = BUFFS.xpBoost > 0 ? 2 : 1;
+  if (BUFFS.xpBoost > 0) BUFFS.xpBoost--;
+  const total = base * mult;
+  STATE.xp += total;
+
+  // Level up check
+  while (STATE.xp >= xpForLevel(STATE.level)) {
+    STATE.xp -= xpForLevel(STATE.level);
+    STATE.level++;
+    STATE.maxEnergy = 10 + Math.floor(STATE.level * 0.5);
+    STATE.energy = STATE.maxEnergy;
+    addLog(`🎉 LEVEL UP! You are now Level ${STATE.level}!`, 'special');
+    showToast(`🎉 Level Up! You're now Lv ${STATE.level}!`);
+  }
+  updateHUD();
+}
+
+// =============================================
+//  HUD UPDATE
+// =============================================
+function updateHUD() {
+  document.getElementById('gold-val').textContent = STATE.gold;
+  document.getElementById('energy-val').textContent = STATE.energy;
+  document.getElementById('xp-val').textContent = STATE.xp;
+  document.getElementById('level-badge').textContent = `Lv ${STATE.level}`;
+  const pct = (STATE.xp / xpForLevel(STATE.level)) * 100;
+  document.getElementById('xp-bar').style.width = pct + '%';
+}
+
+// =============================================
+//  LOG
+// =============================================
+function addLog(msg, type = 'info') {
+  const list = document.getElementById('log-list');
+  const now = new Date().toLocaleTimeString();
+  const div = document.createElement('div');
+  div.className = `log-entry ${type}`;
+  div.innerHTML = `${msg}<div class="log-time">${now}</div>`;
+  list.prepend(div);
+  // Keep log at 50 entries
+  while (list.children.length > 50) list.removeChild(list.lastChild);
+}
+
+// =============================================
+//  TOAST
+// =============================================
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// =============================================
+//  TABS
+// =============================================
+function openTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  if (name === 'inventory') updateInventoryUI();
+}
+
+document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => openTab(b.dataset.tab)));
+
+// =============================================
+//  MOBILE NAV
+// =============================================
+function mobileTab(name, btn) {
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const sidebar = document.getElementById('sidebar');
+  const mapWrap = document.getElementById('map-wrap');
+
+  if (name === 'map') {
+    sidebar.classList.remove('mobile-show');
+    mapWrap.classList.remove('mobile-hide');
+  } else {
+    sidebar.classList.add('mobile-show');
+    mapWrap.classList.add('mobile-hide');
+    openTab(name);
+  }
+  if (name === 'map') setTimeout(() => map.invalidateSize(), 50);
+}
+
+// =============================================
+//  ENERGY REGEN (1 per 5 min)
+// =============================================
+setInterval(() => {
+  if (STATE.energy < STATE.maxEnergy) {
+    STATE.energy++;
+    updateHUD();
+  }
+}, 5 * 60 * 1000);
+
+// =============================================
+//  INIT
+// =============================================
+renderShop();
+updateHUD();
+updateInventoryUI();
+addLog(`🌍 Welcome to GeoQuest! Press 📍 to find your location and begin your adventure.`, 'info');
+addLog(`💡 Tip: Visit special cities like Las Vegas or NYC for unique abilities and bonuses!`, 'info');
+
+// Auto-locate on load
+setTimeout(locatePlayer, 800);
+</script>
+</body>
+</html>
