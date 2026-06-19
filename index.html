@@ -262,6 +262,85 @@
   /* === SECTION HEADER === */
   .section-hdr { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 
+  /* === SEASONS TAB === */
+  #season-header { display: flex; flex-direction: column; gap: 6px; }
+  #season-team-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+  .team-chip {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 4px 10px;
+    font-size: .72rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--surface2);
+    color: var(--text);
+    transition: transform .1s, box-shadow .15s;
+  }
+  .team-chip.selected { box-shadow: 0 0 0 2px #fff inset; transform: scale(1.04); }
+  .team-chip.locked { opacity: .55; cursor: default; }
+
+  #season-header { flex-shrink: 0; }
+  #season-x-wrap { display: flex; justify-content: center; padding: 6px 0; width: 100%; flex-shrink: 0; }
+  #season-x-svg {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+  .x-section { cursor: pointer; stroke: var(--bg); stroke-width: 1.5; transition: opacity .15s; }
+  .x-section:hover { opacity: .85; }
+  .x-section.done { opacity: .35; }
+  .x-section.locked { opacity: .22; cursor: not-allowed; }
+  .x-section.current { stroke: #fff; stroke-width: 2.5; }
+
+  #season-quest-detail {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    font-size: .8rem;
+    min-height: 40px;
+    line-height: 1.45;
+    flex-shrink: 0;
+  }
+  #season-quest-detail .qd-title { font-weight: 700; margin-bottom: 4px; }
+  #season-quest-detail .qd-meta { font-size: .72rem; color: var(--muted); margin-top: 6px; }
+  .qd-progress-bar { background: var(--bg); border-radius: 4px; height: 8px; overflow: hidden; margin-top: 6px; }
+  .qd-progress-fill { height: 100%; border-radius: 4px; transition: width .3s; }
+  .qd-deposit-btn {
+    margin-top: 8px; border: none; border-radius: 6px; padding: 7px 14px;
+    font-size: .8rem; font-weight: 700; cursor: pointer; color: #000;
+  }
+  .qd-deposit-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  #season-standings { display: flex; flex-direction: column; gap: 5px; }
+  .standing-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border-radius: 8px; padding: 6px 10px;
+    font-size: .78rem;
+  }
+  .standing-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .standing-name { flex: 1; font-weight: 600; }
+  .standing-prog { color: var(--muted); font-size: .72rem; }
+
+  #season-vault { display: flex; flex-direction: column; gap: 6px; }
+  .vault-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border-radius: 8px; padding: 6px 10px;
+    font-size: .78rem;
+  }
+  .vault-row .vr-icon { font-size: 1.1rem; }
+  .vault-row .vr-name { flex: 1; }
+  .vault-row .vr-qty { font-weight: 700; color: var(--gold); }
+
+  /* === DICE STATION MARKER (map popup) === */
+  .dice-popup-btn {
+    margin-top: 6px; border: none; border-radius: 6px; padding: 6px 14px;
+    font-size: .8rem; font-weight: 700; cursor: pointer; color: #fff;
+  }
+
   /* === SPECIAL BADGE === */
   .badge-special { color: var(--gold); font-weight: 700; }
   .badge-normal  { color: var(--accent); }
@@ -309,6 +388,7 @@
       <button class="tab-btn active" data-tab="explore">🗺 Explore</button>
       <button class="tab-btn" data-tab="shop">🏪 Shop</button>
       <button class="tab-btn" data-tab="inventory">🎒 Bag</button>
+      <button class="tab-btn" data-tab="seasons">⚔ Seasons</button>
       <button class="tab-btn" data-tab="log">📜 Log</button>
     </div>
 
@@ -358,6 +438,22 @@
       <div id="inv-list"></div>
     </div>
 
+    <!-- SEASONS TAB -->
+    <div class="tab-panel" id="tab-seasons">
+      <div id="season-header">
+        <div class="section-hdr" id="season-title">Season 1</div>
+        <div id="season-team-picker"></div>
+      </div>
+      <div id="season-x-wrap">
+        <svg id="season-x-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div id="season-quest-detail"></div>
+      <div class="section-hdr" style="margin-top:6px;">Team Standings</div>
+      <div id="season-standings"></div>
+      <div class="section-hdr" style="margin-top:6px;">Your Team Vault</div>
+      <div id="season-vault"></div>
+    </div>
+
     <!-- LOG TAB -->
     <div class="tab-panel" id="tab-log">
       <div class="section-hdr">Adventure Log</div>
@@ -379,6 +475,9 @@
   </button>
   <button class="bnav-btn" data-tab="inventory" onclick="mobileTab('inventory',this)">
     <span class="bn-icon">🎒</span>Bag
+  </button>
+  <button class="bnav-btn" data-tab="seasons" onclick="mobileTab('seasons',this)">
+    <span class="bn-icon">⚔</span>Seasons
   </button>
   <button class="bnav-btn" data-tab="log" onclick="mobileTab('log',this)">
     <span class="bn-icon">📜</span>Log
@@ -450,6 +549,302 @@ const SHOP_ITEMS = [
   { id: 'sturdy_pack',  price: 500 },
   { id: 'compass',      price: 300 },
 ];
+
+// =============================================
+//  SEASONS — TEAM WARS
+// =============================================
+// 4 teams (X arms), each with 10 sequential quest sections.
+// Section 10 = the shared center intersection (final quest, hardest).
+// Teams must complete sections strictly in order (1 -> 10).
+// The team that finishes section 10 first wins the season.
+
+const TEAMS = [
+  { id: 'red',    name: 'Crimson Order',     color: '#ef4444', colorDim: 'rgba(239,68,68,.25)'  },
+  { id: 'green',  name: 'Emerald Syndicate', color: '#22c55e', colorDim: 'rgba(34,197,94,.25)'  },
+  { id: 'blue',   name: 'Sapphire Legion',   color: '#3b82f6', colorDim: 'rgba(59,130,246,.25)' },
+  { id: 'yellow', name: 'Solar Vanguard',    color: '#eab308', colorDim: 'rgba(234,179,8,.25)'  },
+];
+
+// Quest template generator — 10 sections per team, increasing difficulty.
+// Mix of: vault deposits (item/gold), collection counts, dice station uses, exploration.
+function buildQuestLine(teamId) {
+  return [
+    // Section 1 — warm-up, single requirement, still a real grind (not a 5-minute clear)
+    { n: 1, type: 'vault_gold', target: 800,
+      label: 'Deposit 800 🪙 Gold into the Team Vault' },
+
+    // Section 2 — introduces a second resource alongside gold
+    { n: 2, type: 'multi', target: { vault_item_herb: 25, vault_gold: 400 },
+      label: 'Deposit 25 🌿 Herbs AND 400 🪙 Gold into the Team Vault' },
+
+    // Section 3 — first dice requirement; with a 5h cooldown per station, this takes real days
+    { n: 3, type: 'dice', target: 8,
+      label: 'Use Dice Stations 8 times total (5h cooldown each — this takes multiple days)' },
+
+    // Section 4 — uncommon item, meaningful quantity
+    { n: 4, type: 'multi', target: { vault_item_crystal: 20, vault_gold: 600 },
+      label: 'Deposit 20 💎 Crystals AND 600 🪙 Gold into the Team Vault' },
+
+    // Section 5 — field grinding, much higher bar than before
+    { n: 5, type: 'collect', target: 40,
+      label: 'Collect 40 field items (crates, chests, etc.) anywhere' },
+
+    // Section 6 — big gold wall + a rare item starts appearing
+    { n: 6, type: 'multi', target: { vault_gold: 1500, vault_item_fossil: 10 },
+      label: 'Deposit 1,500 🪙 Gold AND 10 🦴 Fossils into the Team Vault' },
+
+    // Section 7 — ancient maps are a low-drop-rate item; this forces exploring special cities
+    { n: 7, type: 'multi', target: { vault_item_ancient_map: 12, dice: 5 },
+      label: 'Deposit 12 🗺️ Ancient Maps into the Vault AND use Dice Stations 5 more times' },
+
+    // Section 8 — special-action grind requires visiting multiple special cities (cooldown-gated)
+    { n: 8, type: 'special', target: 12,
+      label: 'Trigger Special City Actions 12 times (cooldown-limited — requires visiting multiple cities over time)' },
+
+    // Section 9 — gems are the rarest common drop; large ask plus a collect requirement
+    { n: 9, type: 'multi', target: { vault_item_gem: 15, collect: 20 },
+      label: 'Deposit 15 💍 Gems into the Vault AND collect 20 more field items' },
+
+    // Section 10 — the finale: a steep combined wall across every resource type
+    { n: 10, type: 'vault_final', goldTarget: 4000, itemTarget: { fossil: 25, gem: 25, ancient_map: 15 },
+      label: 'FINAL: Deposit 4,000 🪙 Gold + 25 🦴 Fossils + 25 💍 Gems + 15 🗺️ Ancient Maps — first team to finish wins the Season!' },
+  ];
+}
+
+// ── Season state ─────────────────────────────────────────────────────────────
+const SEASON = {
+  number: 1,
+  playerTeam: null, // 'red' | 'green' | 'blue' | 'yellow'
+  ended: false,
+  winner: null,
+  teams: {}, // teamId -> { progress: {sectionsDone}, vault: {gold, items:{}}, questProgress: {} }
+};
+
+TEAMS.forEach(t => {
+  SEASON.teams[t.id] = {
+    questLine: buildQuestLine(t.id),
+    currentSection: 1,       // next section the team must complete (1-10)
+    vault: { gold: 0, items: {} },
+    counters: { dice: 0, collect: 0, special: 0 }, // progress trackers for non-vault quests
+  };
+});
+
+// Per-player local trackers for "collect" / "special" / "dice" quest types
+// (in absence of a backend, these are simulated locally and credited to the player's chosen team)
+function seasonAddCounter(type, amount = 1) {
+  if (!SEASON.playerTeam || SEASON.ended) return;
+  const team = SEASON.teams[SEASON.playerTeam];
+  if (!team) return;
+  const section = team.questLine[team.currentSection - 1];
+  if (!section) return;
+  if (section.type !== type) return; // only counts toward the *current* required section
+  team.counters[type] = (team.counters[type] || 0) + amount;
+  checkSectionComplete(SEASON.playerTeam);
+}
+
+function seasonDepositToVault(itemId, qty) {
+  if (!SEASON.playerTeam || SEASON.ended) { showToast('🏳️ Join a team in the Seasons tab first!'); return false; }
+  if (itemId === 'gold') {
+    if (STATE.gold < qty) { showToast('🪙 Not enough gold!'); return false; }
+    STATE.gold -= qty;
+    SEASON.teams[SEASON.playerTeam].vault.gold += qty;
+  } else {
+    if (!STATE.inventory[itemId] || STATE.inventory[itemId] < qty) { showToast(`Not enough ${ITEMS[itemId]?.name || itemId}!`); return false; }
+    STATE.inventory[itemId] -= qty;
+    if (STATE.inventory[itemId] <= 0) delete STATE.inventory[itemId];
+    SEASON.teams[SEASON.playerTeam].vault.items[itemId] = (SEASON.teams[SEASON.playerTeam].vault.items[itemId] || 0) + qty;
+  }
+  updateHUD(); updateInventoryUI();
+  checkSectionComplete(SEASON.playerTeam);
+  renderSeasonsTab();
+  return true;
+}
+
+// Evaluates a single requirement against a team's current state.
+// Keys: 'vault_gold', 'vault_item_<itemId>', 'dice', 'collect', 'special'
+function evalRequirement(team, key, target) {
+  if (key === 'vault_gold') return { have: team.vault.gold, need: target, met: team.vault.gold >= target };
+  if (key.startsWith('vault_item_')) {
+    const itemId = key.replace('vault_item_', '');
+    const have = team.vault.items[itemId] || 0;
+    return { have, need: target, met: have >= target, itemId };
+  }
+  if (key === 'dice')    return { have: team.counters.dice,    need: target, met: team.counters.dice    >= target };
+  if (key === 'collect') return { have: team.counters.collect, need: target, met: team.counters.collect >= target };
+  if (key === 'special') return { have: team.counters.special, need: target, met: team.counters.special >= target };
+  return { have: 0, need: target, met: false };
+}
+
+function checkSectionComplete(teamId) {
+  const team = SEASON.teams[teamId];
+  if (!team || SEASON.ended) return;
+  const section = team.questLine[team.currentSection - 1];
+  if (!section) return;
+
+  let complete = false;
+  if (section.type === 'vault_gold')  complete = team.vault.gold >= section.target;
+  if (section.type === 'vault_item')  complete = (team.vault.items[section.item] || 0) >= section.target;
+  if (section.type === 'dice')        complete = team.counters.dice >= section.target;
+  if (section.type === 'collect')     complete = team.counters.collect >= section.target;
+  if (section.type === 'special')     complete = team.counters.special >= section.target;
+  if (section.type === 'multi') {
+    complete = Object.entries(section.target).every(([key, target]) => evalRequirement(team, key, target).met);
+  }
+  if (section.type === 'vault_final') {
+    const goldOk = team.vault.gold >= section.goldTarget;
+    const itemsOk = Object.entries(section.itemTarget).every(([id, amt]) => (team.vault.items[id] || 0) >= amt);
+    complete = goldOk && itemsOk;
+  }
+
+  if (complete) {
+    if (section.n === 10) {
+      // SEASON WIN
+      SEASON.ended = true;
+      SEASON.winner = teamId;
+      addLog(`🏆 SEASON OVER! ${TEAMS.find(t=>t.id===teamId).name} have completed the X and won Season ${SEASON.number}!`, 'special');
+      if (teamId === SEASON.playerTeam) showToast(`🏆 YOUR TEAM WON SEASON ${SEASON.number}!`);
+      else showToast(`🏆 ${TEAMS.find(t=>t.id===teamId).name} won the season!`);
+    } else {
+      team.currentSection++;
+      // reset counters relevant to next section type so progress doesn't carry over incorrectly
+      if (teamId === SEASON.playerTeam) {
+        addLog(`✅ Your team completed Section ${section.n}! Moving to Section ${section.n + 1}.`, 'good');
+        showToast(`✅ Section ${section.n} complete!`);
+      }
+    }
+    renderSeasonsTab();
+  }
+}
+
+function startNewSeason() {
+  SEASON.number++;
+  SEASON.ended = false;
+  SEASON.winner = null;
+  SEASON.playerTeam = null;
+  TEAMS.forEach(t => {
+    SEASON.teams[t.id] = {
+      questLine: buildQuestLine(t.id),
+      currentSection: 1,
+      vault: { gold: 0, items: {} },
+      counters: { dice: 0, collect: 0, special: 0 },
+    };
+  });
+  addLog(`🆕 Season ${SEASON.number} has begun! Pick your team in the Seasons tab.`, 'info');
+  renderSeasonsTab();
+}
+
+function joinTeam(teamId) {
+  if (SEASON.playerTeam) { showToast('You already joined a team this season!'); return; }
+  SEASON.playerTeam = teamId;
+  addLog(`🏳️ You joined the ${TEAMS.find(t=>t.id===teamId).name}!`, 'special');
+  showToast(`🏳️ Joined ${TEAMS.find(t=>t.id===teamId).name}!`);
+  renderSeasonsTab();
+}
+
+// =============================================
+//  DICE STATIONS
+// =============================================
+const DICE_COOLDOWN_MS = 5 * 60 * 60 * 1000; // 5 hours
+const DICE_STATIONS = []; // populated per city
+const DICE_MARKERS = {};
+const diceLastUsed = {}; // stationId -> timestamp
+
+function generateDiceStation(cityLat, cityLng, cityId) {
+  // Place one dice station near the city center (within ~1.5km), seeded for consistency
+  const seed = cityId.split('').reduce((a, c) => a + c.charCodeAt(0), 0) + 999;
+  const r1 = mulberry32(seed);
+  const r2 = mulberry32(seed * 7);
+  const angle = r1 * 2 * Math.PI;
+  const dist = 0.3 + r2 * 1.2; // 0.3km - 1.5km from city center
+  const dLat = (dist / 111) * Math.cos(angle);
+  const dLng = (dist / (111 * Math.cos(cityLat * Math.PI / 180))) * Math.sin(angle);
+  return {
+    id: `dice_${cityId}`,
+    lat: cityLat + dLat,
+    lng: cityLng + dLng,
+    cityId,
+  };
+}
+
+function diceIcon() {
+  return L.divIcon({
+    className: '',
+    html: `
+      <svg width="26" height="34" viewBox="0 0 26 34" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));cursor:pointer;">
+        <path d="M13 2 C6.9 2 2 6.9 2 13 C2 20.5 13 32 13 32 C13 32 24 20.5 24 13 C24 6.9 19.1 2 13 2Z"
+              fill="#a371f7" stroke="#fff" stroke-width="1.5"/>
+        <rect x="8" y="8" width="10" height="10" rx="2" fill="#fff"/>
+        <circle cx="10.5" cy="10.5" r="1.1" fill="#a371f7"/>
+        <circle cx="15.5" cy="10.5" r="1.1" fill="#a371f7"/>
+        <circle cx="10.5" cy="15.5" r="1.1" fill="#a371f7"/>
+        <circle cx="15.5" cy="15.5" r="1.1" fill="#a371f7"/>
+        <circle cx="13"   cy="13"   r="1.1" fill="#a371f7"/>
+      </svg>`,
+    iconSize: [26, 34],
+    iconAnchor: [13, 32],
+  });
+}
+
+function diceStationPopupHTML(station) {
+  const last = diceLastUsed[station.id] || 0;
+  const now = Date.now();
+  const elapsed = now - last;
+  const ready = elapsed >= DICE_COOLDOWN_MS;
+
+  if (!ready) {
+    const remainMs = DICE_COOLDOWN_MS - elapsed;
+    const h = Math.floor(remainMs / 3600000);
+    const m = Math.floor((remainMs % 3600000) / 60000);
+    return `<b>🎲 Dice Station</b><br><i style="font-size:.78rem;">Roll for gold, XP, or rare loot.</i><br>
+      <small style="color:#aaa;">⏳ Cooldown: ${h}h ${m}m remaining</small><br>
+      <button class="dice-popup-btn" disabled style="background:#555;color:#aaa;cursor:not-allowed;">🔒 On Cooldown</button>`;
+  }
+
+  const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, station.lat, station.lng) : Infinity;
+  const inRange = dist <= COLLECT_RADIUS_KM;
+  const distStr = dist === Infinity ? 'Unknown' : dist < 1 ? `${Math.round(dist*1000)} m` : `${dist.toFixed(1)} km`;
+
+  return `<b>🎲 Dice Station</b><br><i style="font-size:.78rem;">Roll for gold, XP, or rare loot. Counts toward Season dice quests!</i><br>
+    <small style="color:#aaa;">📍 ${distStr} away</small><br>
+    <button class="dice-popup-btn" onclick="useDiceStation('${station.id}')"
+      style="background:${inRange ? '#a371f7' : '#555'};color:${inRange ? '#fff' : '#aaa'};cursor:${inRange ? 'pointer' : 'not-allowed'};" ${inRange ? '' : 'disabled'}>
+      ${inRange ? '🎲 Roll the Dice' : `🔒 Too far (${distStr})`}
+    </button>`;
+}
+
+function useDiceStation(stationId) {
+  const station = DICE_STATIONS.find(s => s.id === stationId);
+  if (!station) return;
+
+  const last = diceLastUsed[stationId] || 0;
+  if (Date.now() - last < DICE_COOLDOWN_MS) { showToast('🎲 Station is on cooldown!'); return; }
+
+  const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, station.lat, station.lng) : Infinity;
+  if (dist > COLLECT_RADIUS_KM) { showToast('🔒 Too far from the Dice Station!'); return; }
+
+  diceLastUsed[stationId] = Date.now();
+
+  // Roll outcome
+  const roll = Math.floor(Math.random() * 6) + 1;
+  let goldWin = roll * 30;
+  let xpWin = roll * 8;
+  STATE.gold += goldWin;
+  gainXP(xpWin);
+  addLog(`🎲 Rolled a ${roll} at the Dice Station! +🪙${goldWin} +${xpWin} XP`, 'good');
+  showToast(`🎲 Rolled ${roll}! +🪙${goldWin}`);
+
+  if (roll === 6) {
+    addItem('gem');
+    addLog(`🎲 Lucky 6! Bonus 💍 Gem awarded!`, 'special');
+  }
+
+  // Credit season quest counter
+  seasonAddCounter('dice', 1);
+
+  updateHUD(); updateInventoryUI();
+  const marker = DICE_MARKERS[stationId];
+  if (marker) marker.getPopup().setContent(diceStationPopupHTML(station));
+}
 
 // =============================================
 //  SPECIAL LOCATIONS
@@ -790,6 +1185,9 @@ function collectSpawn(spawnId) {
   addLog(`${spawn.type.emoji} Collected ${spawn.type.label} → got ${item.icon} ${item.name}! (+${spawn.type.xp} XP)`, 'good');
   showToast(`${spawn.type.emoji} Got ${item.name}!`);
 
+  // Credit season "collect" quest counter
+  seasonAddCounter('collect', 1);
+
   // Refresh marker icon to greyed out
   const marker = SPAWN_MARKERS[spawnId];
   if (marker) {
@@ -844,6 +1242,14 @@ SPECIAL_LOCATIONS.forEach(loc => {
       .bindPopup(spawnPopupHTML(spawn), { maxWidth: 200 });
     SPAWN_MARKERS[spawn.id] = marker;
   });
+
+  // Dice Station — one per city
+  const station = generateDiceStation(loc.lat, loc.lng, loc.id);
+  DICE_STATIONS.push(station);
+  const diceMarker = L.marker([station.lat, station.lng], { icon: diceIcon() })
+    .addTo(map)
+    .bindPopup(diceStationPopupHTML(station), { maxWidth: 220 });
+  DICE_MARKERS[station.id] = diceMarker;
 });
 
 // =============================================
@@ -1167,10 +1573,25 @@ function doSpecialAction() {
       atlanta:actionatlanta, minneapolis:actionminneapolis,
       neworleans:actionneworleans, tampa:actiontampa, honolulu:actionhonolulu,
       anchorage:actionanchorage, kansascity:actionkansascity, wichita:actionwichita,
+      buffalo:actionbuffalo, pittsburgh:actionpittsburgh, cincinnati:actioncincinnati,
+      cleveland:actioncleveland, richmond:actionrichmond, saltlake:actionsaltlake,
+      hartford:actionhartford, providence:actionprovidence, boise:actionboise,
+      spokane:actionspokane, desmoines:actiondesmoines, madison:actionmadison,
+      littlerock:actionlittlerock, jackson:actionjackson, montgomery:actionmontgomery,
+      birmingham:actionbirmingham, columbiasc:actioncolumbiasc, knoxville:actionknoxville,
+      lexington:actionlexington, rochester:actionrochester, tulsa:actiontulsa,
+      okcity:actionokcity, siouxfalls:actionsiouxfalls, fargo:actionfargo,
+      billings:actionbillings, cheyenne:actioncheyenne, rapidcity:actionrapidcity,
+      santafe:actionsantafe, lubbock:actionlubbock, corpuschristi:actioncorpuschristi,
+      laredo:actionlaredo, shreveport:actionshreveport, mobile:actionmobile,
+      savannah:actionsavannah, charleston:actioncharleston, greenville:actiongreenville,
     };
     if (fnMap[fn]) fnMap[fn]();
     else showToast('Special action coming soon!');
   }
+
+  // Credit season "special action" quest counter
+  seasonAddCounter('special', 1);
 
   updateInventoryUI();
   updateHUD();
@@ -1524,12 +1945,304 @@ function showToast(msg) {
 }
 
 // =============================================
+//  SEASONS — RENDERING
+// =============================================
+
+// Geometry: 4 arms (N, E, S, W) meeting at center. Each arm = 10 sections.
+// Section index 0 = outermost (tip of arm), index 9 = innermost (touches center).
+// Arms are angled like an "X" (NE, SE, SW, NW) per the diagonal cross shape.
+const ARM_ANGLES = { red: -45, blue: 45, yellow: 135, green: -135 }; // degrees, 0 = right/east
+const CENTER = { x: 160, y: 160 };
+const ARM_LENGTH = 138;     // px from center to tip
+const ARM_HALF_WIDTH = 13;  // px half-width of each arm
+
+function polar(cx, cy, angleDeg, dist) {
+  const rad = angleDeg * Math.PI / 180;
+  return { x: cx + Math.cos(rad) * dist, y: cy + Math.sin(rad) * dist };
+}
+
+// Build the 10 trapezoid sections for one arm (section 1 = tip/outermost, section 10 = innermost @ center)
+function buildArmSections(teamId) {
+  const angle = ARM_ANGLES[teamId];
+  const perp = angle + 90; // perpendicular direction for width
+  const sections = [];
+  const segLen = ARM_LENGTH / 10;
+
+  // section n=1 at the tip (farthest from center), n=10 at the center
+  for (let n = 1; n <= 10; n++) {
+    const outerDist = ARM_LENGTH - (n - 1) * segLen; // far edge of this section
+    const innerDist  = ARM_LENGTH - n * segLen;        // near edge (closer to center)
+    // width tapers slightly toward center for visual flair (optional) — keep constant for clarity
+    const halfW = ARM_HALF_WIDTH;
+
+    const outerCenter = polar(CENTER.x, CENTER.y, angle, outerDist);
+    const innerCenter = polar(CENTER.x, CENTER.y, angle, innerDist);
+
+    const p1 = polar(outerCenter.x, outerCenter.y, perp, halfW);
+    const p2 = polar(outerCenter.x, outerCenter.y, perp, -halfW);
+    const p3 = polar(innerCenter.x, innerCenter.y, perp, -halfW);
+    const p4 = polar(innerCenter.x, innerCenter.y, perp, halfW);
+
+    sections.push({ n, points: [p1, p2, p3, p4] });
+  }
+  return sections;
+}
+
+function pointsToStr(points) {
+  return points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+}
+
+// Build a rounded-rectangle-ish path through 4 corner points (p1..p4, in order).
+// `radius` controls how rounded each corner is. The tip corners (isTip=true)
+// get extra rounding so the very end of each arm reads as a soft rounded cap.
+function roundedQuadPath(points, radius, tipCorners = []) {
+  const [p1, p2, p3, p4] = points;
+  const corners = [p1, p2, p3, p4];
+  const n = corners.length;
+
+  function shrinkToward(from, to, dist) {
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const d = Math.min(dist, len * 0.49);
+    return { x: from.x + (dx / len) * d, y: from.y + (dy / len) * d };
+  }
+
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const cur = corners[i];
+    const prev = corners[(i - 1 + n) % n];
+    const next = corners[(i + 1) % n];
+    const r = tipCorners.includes(i) ? radius * 1.6 : radius;
+
+    const a = shrinkToward(cur, prev, r);
+    const b = shrinkToward(cur, next, r);
+
+    if (i === 0) d += `M ${a.x.toFixed(2)} ${a.y.toFixed(2)} `;
+    else d += `L ${a.x.toFixed(2)} ${a.y.toFixed(2)} `;
+    d += `Q ${cur.x.toFixed(2)} ${cur.y.toFixed(2)} ${b.x.toFixed(2)} ${b.y.toFixed(2)} `;
+  }
+  d += 'Z';
+  return d;
+}
+
+function renderSeasonsTab() {
+  // ── Title ──
+  document.getElementById('season-title').textContent =
+    SEASON.ended ? `Season ${SEASON.number} — ${TEAMS.find(t=>t.id===SEASON.winner).name} Won!` : `Season ${SEASON.number}`;
+
+  // ── Team picker ──
+  const picker = document.getElementById('season-team-picker');
+  if (SEASON.ended) {
+    picker.innerHTML = `<button class="team-chip" onclick="startNewSeason()" style="background:var(--gold);color:#000;">🔄 Start New Season</button>`;
+  } else if (!SEASON.playerTeam) {
+    picker.innerHTML = TEAMS.map(t => `
+      <button class="team-chip" style="background:${t.color};color:#000;" onclick="joinTeam('${t.id}')">${t.name}</button>
+    `).join('');
+  } else {
+    picker.innerHTML = TEAMS.map(t => `
+      <span class="team-chip ${t.id === SEASON.playerTeam ? 'selected' : 'locked'}" style="background:${t.color};color:#000;">
+        ${t.name}${t.id === SEASON.playerTeam ? ' ✓ (You)' : ''}
+      </span>
+    `).join('');
+  }
+
+  // ── X diagram ──
+  const svg = document.getElementById('season-x-svg');
+  let svgContent = '';
+
+  TEAMS.forEach(team => {
+    const sections = buildArmSections(team.id);
+    const teamState = SEASON.teams[team.id];
+    sections.forEach(sec => {
+      const isDone = sec.n < teamState.currentSection || (SEASON.ended && SEASON.winner === team.id);
+      const isCurrent = sec.n === teamState.currentSection && !SEASON.ended;
+      const isLocked = sec.n > teamState.currentSection;
+      let cls = 'x-section';
+      if (isDone) cls += ' done';
+      if (isLocked) cls += ' locked';
+      if (isCurrent) cls += ' current';
+      // points[0]=p1 (outer/right of perp), points[1]=p2 (outer/left), points[2]=p3 (inner/left), points[3]=p4 (inner/right)
+      // Section 1 is the tip of the arm -> its outer corners (indices 0,1) get extra rounding.
+      const tipCorners = sec.n === 1 ? [0, 1] : [];
+      const pathD = roundedQuadPath(sec.points, 5, tipCorners);
+      svgContent += `<path class="${cls}" d="${pathD}" fill="${team.color}"
+        onclick="onSectionClick('${team.id}', ${sec.n})" data-team="${team.id}" data-section="${sec.n}"></path>`;
+    });
+  });
+
+  // Center hub circle (visual only)
+  svgContent += `<circle cx="${CENTER.x}" cy="${CENTER.y}" r="16" fill="var(--surface)" stroke="var(--border)" stroke-width="2"></circle>`;
+  svgContent += `<text x="${CENTER.x}" y="${CENTER.y+4}" text-anchor="middle" font-size="9" fill="var(--text)" font-weight="700">X</text>`;
+
+  svg.innerHTML = svgContent;
+
+  // ── Quest detail panel (show current player's team next quest by default) ──
+  renderQuestDetail(SEASON.playerTeam || null, null);
+
+  // ── Standings ──
+  const standingsEl = document.getElementById('season-standings');
+  const sorted = [...TEAMS].sort((a, b) => SEASON.teams[b.id].currentSection - SEASON.teams[a.id].currentSection);
+  standingsEl.innerHTML = sorted.map(t => {
+    const st = SEASON.teams[t.id];
+    const pct = Math.min(100, ((st.currentSection - 1) / 10) * 100);
+    return `
+      <div class="standing-row">
+        <div class="standing-dot" style="background:${t.color};"></div>
+        <div class="standing-name">${t.name}${t.id === SEASON.playerTeam ? ' (You)' : ''}</div>
+        <div class="standing-prog">Section ${Math.min(st.currentSection,10)}/10</div>
+      </div>`;
+  }).join('');
+
+  // ── Vault display ──
+  const vaultEl = document.getElementById('season-vault');
+  if (!SEASON.playerTeam) {
+    vaultEl.innerHTML = `<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:14px;">Join a team to see your vault.</div>`;
+  } else {
+    const vault = SEASON.teams[SEASON.playerTeam].vault;
+    const itemRows = Object.entries(vault.items).map(([id, qty]) => {
+      const item = ITEMS[id];
+      if (!item) return '';
+      return `<div class="vault-row"><span class="vr-icon">${item.icon}</span><span class="vr-name">${item.name}</span><span class="vr-qty">${qty}</span></div>`;
+    }).join('');
+    vaultEl.innerHTML = `
+      <div class="vault-row"><span class="vr-icon">🪙</span><span class="vr-name">Gold</span><span class="vr-qty">${vault.gold}</span></div>
+      ${itemRows}
+      <div style="font-size:.7rem;color:var(--muted);text-align:center;padding-top:4px;">🔒 Vault deposits are permanent — nothing can be withdrawn.</div>
+    `;
+  }
+}
+
+function onSectionClick(teamId, sectionNum) {
+  renderQuestDetail(teamId, sectionNum);
+}
+
+function renderQuestDetail(teamId, sectionNum) {
+  const panel = document.getElementById('season-quest-detail');
+  if (!teamId) {
+    panel.innerHTML = `<div class="qd-title">Pick a team to begin!</div><div>Tap a team above, then tap a section of the X to see what's required.</div>`;
+    return;
+  }
+  const team = TEAMS.find(t => t.id === teamId);
+  const teamState = SEASON.teams[teamId];
+  const n = sectionNum || teamState.currentSection;
+  const section = teamState.questLine[Math.min(n, 10) - 1];
+  if (!section) {
+    panel.innerHTML = `<div class="qd-title">${team.name}</div><div>This team has completed the X! 🏆</div>`;
+    return;
+  }
+
+  const isCurrent = n === teamState.currentSection;
+  const isDone = n < teamState.currentSection;
+  const isLocked = n > teamState.currentSection;
+
+  let statusLabel = isDone ? '✅ Completed' : isLocked ? `🔒 Locked — complete Section ${teamState.currentSection} first` : '🎯 Current Quest';
+  let progressHTML = '';
+  let depositHTML = '';
+
+  if (isCurrent && teamId === SEASON.playerTeam) {
+    if (section.type === 'vault_gold') {
+      const have = teamState.vault.gold;
+      const pct = Math.min(100, (have / section.target) * 100);
+      progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
+        <div class="qd-meta">${have} / ${section.target} 🪙 in vault</div>`;
+      depositHTML = `<button class="qd-deposit-btn" style="background:${team.color};" onclick="promptDeposit('gold', ${Math.min(200, section.target)})">Deposit Gold</button>`;
+    } else if (section.type === 'vault_item') {
+      const have = teamState.vault.items[section.item] || 0;
+      const pct = Math.min(100, (have / section.target) * 100);
+      const item = ITEMS[section.item];
+      progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
+        <div class="qd-meta">${have} / ${section.target} ${item.icon} ${item.name} in vault</div>`;
+      depositHTML = `<button class="qd-deposit-btn" style="background:${team.color};" onclick="promptDeposit('${section.item}', 1)">Deposit ${item.name}</button>`;
+    } else if (section.type === 'dice') {
+      const have = teamState.counters.dice;
+      const pct = Math.min(100, (have / section.target) * 100);
+      progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
+        <div class="qd-meta">${have} / ${section.target} Dice Station uses</div>`;
+    } else if (section.type === 'collect') {
+      const have = teamState.counters.collect;
+      const pct = Math.min(100, (have / section.target) * 100);
+      progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
+        <div class="qd-meta">${have} / ${section.target} field items collected</div>`;
+    } else if (section.type === 'special') {
+      const have = teamState.counters.special;
+      const pct = Math.min(100, (have / section.target) * 100);
+      progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
+        <div class="qd-meta">${have} / ${section.target} Special City Actions triggered</div>`;
+    } else if (section.type === 'multi') {
+      // Render one progress bar + (if applicable) one deposit button per sub-requirement
+      const rows = Object.entries(section.target).map(([key, target]) => {
+        const r = evalRequirement(teamState, key, target);
+        const pct = Math.min(100, (r.have / r.need) * 100);
+        let labelText, btn = '';
+        if (key === 'vault_gold') {
+          labelText = `${r.have} / ${r.need} 🪙 Gold in vault`;
+          btn = `<button class="qd-deposit-btn" style="background:${team.color};margin:4px 4px 0 0;" onclick="promptDeposit('gold', ${Math.min(200, r.need)})">Deposit Gold</button>`;
+        } else if (key.startsWith('vault_item_')) {
+          const item = ITEMS[r.itemId];
+          labelText = `${r.have} / ${r.need} ${item.icon} ${item.name} in vault`;
+          btn = `<button class="qd-deposit-btn" style="background:${team.color};margin:4px 4px 0 0;" onclick="promptDeposit('${r.itemId}', 1)">Deposit ${item.name}</button>`;
+        } else if (key === 'dice') {
+          labelText = `${r.have} / ${r.need} Dice Station uses`;
+        } else if (key === 'collect') {
+          labelText = `${r.have} / ${r.need} field items collected`;
+        } else if (key === 'special') {
+          labelText = `${r.have} / ${r.need} Special City Actions triggered`;
+        }
+        return `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
+          <div class="qd-meta">${labelText}</div>${btn}`;
+      }).join('');
+      progressHTML = rows;
+      depositHTML = ''; // buttons already inlined per-row above
+    } else if (section.type === 'vault_final') {
+      const g = teamState.vault.gold;
+      const items = section.itemTarget;
+      const itemRows = Object.entries(items).map(([id, amt]) => {
+        const have = teamState.vault.items[id] || 0;
+        const item = ITEMS[id];
+        return `<div class="qd-meta">${item.icon} ${have} / ${amt} ${item.name}</div>`;
+      }).join('');
+      progressHTML = `<div class="qd-meta">🪙 ${g} / ${section.goldTarget} Gold</div>${itemRows}`;
+      depositHTML = `
+        <button class="qd-deposit-btn" style="background:${team.color};" onclick="promptDeposit('gold', 200)">Deposit Gold</button>
+        ${Object.keys(items).map(id => `<button class="qd-deposit-btn" style="background:${team.color};margin-left:4px;" onclick="promptDeposit('${id}', 1)">Deposit ${ITEMS[id].name}</button>`).join('')}
+      `;
+    }
+  }
+
+  panel.innerHTML = `
+    <div class="qd-title">${team.name} — Section ${n}/10</div>
+    <div>${section.label}</div>
+    <div class="qd-meta">${statusLabel}</div>
+    ${progressHTML}
+    ${depositHTML}
+  `;
+}
+
+// Simple deposit prompt — deposits a fixed/typed amount from inventory or gold into the player's team vault
+function promptDeposit(itemId, suggested) {
+  if (!SEASON.playerTeam) { showToast('Join a team first!'); return; }
+  const label = itemId === 'gold' ? 'Gold' : (ITEMS[itemId]?.name || itemId);
+  const have = itemId === 'gold' ? STATE.gold : (STATE.inventory[itemId] || 0);
+  const amountStr = prompt(`Deposit how much ${label} into your team vault? (You have ${have})`, Math.min(suggested, have) || 1);
+  if (amountStr === null) return;
+  const amount = parseInt(amountStr, 10);
+  if (!amount || amount <= 0) { showToast('Enter a valid amount.'); return; }
+  const ok = seasonDepositToVault(itemId, amount);
+  if (ok) {
+    addLog(`🏦 Deposited ${amount} ${itemId === 'gold' ? '🪙' : ITEMS[itemId].icon} ${label} into the ${TEAMS.find(t=>t.id===SEASON.playerTeam).name} vault.`, 'good');
+    showToast(`🏦 Deposited ${amount} ${label}!`);
+    renderQuestDetail(SEASON.playerTeam, SEASON.teams[SEASON.playerTeam].currentSection);
+  }
+}
+
+// =============================================
 //  TABS
 // =============================================
 function openTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
   if (name === 'inventory') updateInventoryUI();
+  if (name === 'seasons') renderSeasonsTab();
 }
 
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => openTab(b.dataset.tab)));
@@ -1571,7 +2284,9 @@ setInterval(() => {
 renderShop();
 updateHUD();
 updateInventoryUI();
+renderSeasonsTab();
 addLog(`🌍 Welcome to GeoQuest! Press 📍 to find your location and begin your adventure.`, 'info');
+addLog(`⚔ NEW: Check the Seasons tab to join a team and race the X to victory! Use Dice Stations in any city to help your team.`, 'special');
 addLog(`💡 Tip: Visit special cities like Las Vegas or NYC for unique abilities and bonuses!`, 'info');
 
 // Auto-locate on load
