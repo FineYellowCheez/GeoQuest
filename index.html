@@ -353,6 +353,90 @@
   /* === MAP MARKER OVERRIDES === */
   .special-marker { filter: hue-rotate(40deg) brightness(1.2); }
 
+  /* === MENU OVERLAY === */
+  #menu-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: radial-gradient(circle at 50% 20%, #1a2233 0%, var(--bg) 70%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  #menu-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  #menu-title { font-size: 2.2rem; margin-bottom: 4px; }
+  #menu-subtitle { color: var(--muted); font-size: .95rem; margin-bottom: 28px; letter-spacing: .08em; text-transform: uppercase; }
+  #menu-buttons { display: flex; flex-direction: column; gap: 12px; }
+  .menu-btn {
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+  .menu-btn:hover { background: var(--border); }
+  .menu-btn:active { transform: scale(.98); }
+  .menu-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+  .menu-btn.primary:hover { background: #79b8ff; }
+  .menu-btn.back { margin-top: 16px; background: none; color: var(--muted); }
+
+  #menu-sp-setup { margin-top: 22px; text-align: left; }
+  #menu-sp-setup h2 { font-size: 1.1rem; margin-bottom: 8px; text-align: center; }
+  .menu-hint { color: var(--muted); font-size: .82rem; line-height: 1.5; margin-bottom: 16px; text-align: center; }
+  #menu-team-grid { display: flex; flex-direction: column; gap: 10px; }
+  .menu-team-btn {
+    border: none; border-radius: 10px; padding: 14px;
+    font-size: 1rem; font-weight: 700; color: #000;
+    cursor: pointer; transition: transform .1s;
+  }
+  .menu-team-btn:hover { transform: scale(1.02); }
+  .menu-team-btn:active { transform: scale(.98); }
+
+  /* === HOW TO PLAY OVERLAY === */
+  #howto-overlay {
+    position: fixed; inset: 0; z-index: 5100;
+    background: rgba(0,0,0,.75);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  #howto-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px 24px;
+    max-width: 520px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  #howto-card h2 { margin-bottom: 14px; }
+  #howto-content h3 { font-size: .92rem; color: var(--accent); margin: 16px 0 4px; }
+  #howto-content h3:first-child { margin-top: 0; }
+  #howto-content p { font-size: .85rem; color: var(--text); line-height: 1.55; }
+  #howto-card .menu-btn { width: 100%; margin-top: 20px; }
+
+  /* === GAME WRAPPER (hidden behind menu until Single Player starts) === */
+  #game-root { display: none; }
+  #game-root.active { display: flex; flex-direction: column; flex: 1; height: 100%; min-height: 0; }
+
+  /* === BOT MARKER === */
+  .bot-label {
+    background: rgba(0,0,0,.7); color: #fff; font-size: .65rem; font-weight: 700;
+    padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+    transform: translateY(-32px);
+  }
+
   /* MOBILE */
   @media (max-width: 640px) {
     #sidebar { display: none; width: 100%; border-left: none; border-top: 1px solid var(--border); }
@@ -360,17 +444,83 @@
     #map-wrap.mobile-hide { display: none; }
     #bottom-nav { display: flex; }
     #main { position: relative; }
+    #menu-card { padding: 26px 20px; }
   }
 </style>
 </head>
 <body>
+
+<!-- ============================================= -->
+<!--  MAIN MENU OVERLAY                             -->
+<!-- ============================================= -->
+<div id="menu-overlay">
+  <div id="menu-card">
+    <h1 id="menu-title">🌍 GeoQuest</h1>
+    <p id="menu-subtitle">World Explorer</p>
+
+    <div id="menu-buttons">
+      <button class="menu-btn primary" onclick="openSinglePlayerSetup()">🎮 Single Player</button>
+      <button class="menu-btn" onclick="openHowToPlay()">📖 How to Play</button>
+    </div>
+
+    <!-- Single Player team-pick step (hidden until Single Player is clicked) -->
+    <div id="menu-sp-setup" style="display:none;">
+      <h2>Choose Your Team</h2>
+      <p class="menu-hint">You'll play as one team. The other 3 teams will be controlled by bots — each spawns somewhere random in America and moves around on their own.</p>
+      <div id="menu-team-grid"></div>
+      <button class="menu-btn back" onclick="closeSinglePlayerSetup()">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!--  HOW TO PLAY OVERLAY                           -->
+<!-- ============================================= -->
+<div id="howto-overlay" style="display:none;">
+  <div id="howto-card">
+    <h2>📖 How to Play</h2>
+    <div id="howto-content">
+      <h3>🗺️ The Map</h3>
+      <p>Your real GPS location is shown as a blue dot. Move around in real life to explore — items, Dice Stations, and special cities are scattered across America.</p>
+
+      <h3>📦 Collecting Items</h3>
+      <p>Dumpsters and pawn shops are scattered in the outskirts of cities and out in rural areas. You must be within <b>1 km</b> of something to collect it (a Reach Ticket extends this to 5 km for 5 minutes).</p>
+
+      <h3>🎲 Dice Stations</h3>
+      <p>Every city has a Dice Station out in its suburbs. Roll for gold and XP — each station has a <b>5-hour cooldown</b> after use. Luck Tickets improve your odds.</p>
+
+      <h3>⭐ Special Cities</h3>
+      <p>Cities like Las Vegas, NYC, and others have a unique Special Action with its own 30-minute cooldown and bigger rewards.</p>
+
+      <h3>⚔ Seasons &amp; Teams</h3>
+      <p>Join one of 4 teams. Each team has its own arm on the X-shaped board with 10 sections that must be completed <b>in order</b>. Sections require things like vault deposits, Dice Station use, item collecting, and visiting special cities. The 10th and final section requires planting <b>50 team flags</b> anywhere in America — first team there wins the Season!</p>
+
+      <h3>🏦 Team Vaults</h3>
+      <p>Deposit gold and items into your team's vault from the Seasons tab. Deposits are <b>permanent</b> — nothing can ever be withdrawn.</p>
+
+      <h3>🚩 Flags</h3>
+      <p>Once you're on a team, buy Flags in the Shop (🪙500 each) and place them from your Bag at your current location. They show team pride and count toward your team's final quest.</p>
+
+      <h3>🎟️ Tickets</h3>
+      <p>Buy tickets in the Shop for temporary boosts: Luck, XP Boost, Reach, Double Drop, Cooldown Skip, Sprint, Vault Insurance, and Scanner.</p>
+
+      <h3>🤖 Single Player &amp; Bots</h3>
+      <p>In Single Player, the 3 teams you didn't choose are played by bots. Each bot wanders around the country on land (they can't enter water) and periodically deposits into their vault and places flags — so your team has real competition even when playing alone.</p>
+    </div>
+    <button class="menu-btn primary" onclick="closeHowToPlay()">Got it!</button>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!--  GAME ROOT (hidden until Single Player starts) -->
+<!-- ============================================= -->
+<div id="game-root">
 
 <!-- TOP BAR -->
 <div id="topbar">
   <h1>🌍 GeoQuest</h1>
   <div id="level-badge">Lv 1</div>
   <div class="stat-pill gold"><span class="icon">🪙</span><span id="gold-val">500</span></div>
-  <div class="stat-pill energy"><span class="icon">⚡</span><span id="energy-val">10</span>/10</div>
   <div class="stat-pill xp"><span class="icon">⭐</span><span id="xp-val">0</span></div>
 </div>
 
@@ -403,26 +553,19 @@
 
       <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
 
-      <div class="section-hdr">Actions</div>
       <div id="actions-grid">
-        <button class="action-btn" id="btn-forage" onclick="doForage()">
-          <span class="ab-icon">🌿</span>Forage
-        </button>
-        <button class="action-btn" id="btn-explore-area" onclick="doExploreArea()">
-          <span class="ab-icon">🔭</span>Scout
-        </button>
-        <button class="action-btn" id="btn-rest" onclick="doRest()">
-          <span class="ab-icon">🛏</span>Rest (+⚡)
-        </button>
-        <button class="action-btn" id="btn-collect" onclick="doCollect()">
-          <span class="ab-icon">💎</span>Collect
-        </button>
         <button class="action-btn special" id="btn-special" onclick="doSpecialAction()" style="grid-column:span 2; display:none;">
           <span class="ab-icon">✨</span><span id="special-label">Special</span>
         </button>
       </div>
 
-      <div class="section-hdr">Nearby Landmarks</div>
+      <div class="section-hdr">🎲 Nearby Dice Stations</div>
+      <div id="nearby-dice-list"></div>
+
+      <div class="section-hdr">📦 Nearby Items</div>
+      <div id="nearby-items-list"></div>
+
+      <div class="section-hdr">⭐ Nearby Landmarks</div>
       <div id="nearby-list"></div>
     </div>
 
@@ -430,6 +573,8 @@
     <div class="tab-panel" id="tab-shop">
       <div class="section-hdr">General Store</div>
       <div id="shop-list"></div>
+      <div class="section-hdr" style="margin-top:8px;">Team Flags</div>
+      <div id="shop-flags"></div>
     </div>
 
     <!-- INVENTORY TAB -->
@@ -487,6 +632,8 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
+</div><!-- /#game-root -->
+
 <script>
 // =============================================
 //  GAME STATE
@@ -495,13 +642,10 @@ const STATE = {
   gold: 500,
   xp: 0,
   level: 1,
-  energy: 10,
-  maxEnergy: 10,
   inventory: {},
   lat: null,
   lng: null,
   currentLocation: null,
-  lastEnergyRegen: Date.now(),
   cooldowns: {},
 };
 
@@ -523,32 +667,49 @@ const ITEMS = {
   lava_rock:   { name: 'Lava Rock',    icon: '🌋', desc: 'Solidified lava from a volcano.',    sellPrice: 60 },
 
   // Tickets / boosts
-  luck_ticket: { name: 'Luck Ticket',  icon: '🍀', desc: 'Increases drop chance for 3 forages.', sellPrice: 50,  usable: true },
-  energy_drink:{ name: 'Energy Drink', icon: '⚡', desc: 'Instantly restores 5 energy.',        sellPrice: 30,  usable: true },
-  treasure_map:{ name: 'Treasure Map', icon: '🗺️', desc: 'Guarantees a rare item on next forage.', sellPrice: 100, usable: true },
-  xp_boost:    { name: 'XP Boost',     icon: '⭐', desc: 'Doubles XP for 5 actions.',           sellPrice: 80,  usable: true },
-  magnet:      { name: 'Collector Magnet', icon: '🧲', desc: 'Auto-collects 3 free items.',     sellPrice: 60,  usable: true },
+  luck_ticket:     { name: 'Luck Ticket',      icon: '🍀', desc: 'Increases your odds of winning big at Dice Stations for 3 rolls.', sellPrice: 50, usable: true },
+  xp_boost:        { name: 'XP Boost',         icon: '⭐', desc: 'Doubles XP for 5 actions.',                                        sellPrice: 80, usable: true },
+  reach_ticket:    { name: 'Reach Ticket',     icon: '📡', desc: 'For 5 minutes, interact with items/stations within 5 km instead of 1 km.', sellPrice: 180, usable: true },
+  double_drop_ticket: { name: 'Double Drop Ticket', icon: '🎁', desc: 'Your next 3 field collects each give 2 items instead of 1.',    sellPrice: 150, usable: true },
+  cooldown_skip_ticket: { name: 'Cooldown Skip Ticket', icon: '⏩', desc: 'Instantly resets the cooldown on one Dice Station of your choice.', sellPrice: 200, usable: true },
+  sprint_ticket:   { name: 'Sprint Ticket',    icon: '🏃', desc: 'Your next Special City Action ignores its cooldown.',                sellPrice: 160, usable: true },
+  insurance_ticket:{ name: 'Vault Insurance Ticket', icon: '🛡️', desc: 'Your next vault deposit counts double toward your team quest.', sellPrice: 220, usable: true },
+  scanner_ticket:  { name: 'Scanner Ticket',   icon: '📶', desc: 'For 10 minutes, highlights the single closest unclaimed item or station on the map.', sellPrice: 140, usable: true },
 
-  // Shop-exclusive
-  sturdy_pack: { name: 'Sturdy Pack',  icon: '🎒', desc: 'Increases item drop rate permanently.', sellPrice: 200 },
-  compass:     { name: 'Compass',      icon: '🧭', desc: 'Shows distance to nearest landmark.',  sellPrice: 120 },
+  // Team flags — purchasable only while on a team, used for the Season 10 finale quest
+  flag_red:    { name: 'Crimson Order Flag',     icon: '🚩', desc: 'Plant this anywhere to show Crimson Order pride. Counts toward your team\'s flag quest.',     sellPrice: 0 },
+  flag_green:  { name: 'Emerald Syndicate Flag', icon: '🚩', desc: 'Plant this anywhere to show Emerald Syndicate pride. Counts toward your team\'s flag quest.', sellPrice: 0 },
+  flag_blue:   { name: 'Sapphire Legion Flag',   icon: '🚩', desc: 'Plant this anywhere to show Sapphire Legion pride. Counts toward your team\'s flag quest.',   sellPrice: 0 },
+  flag_yellow: { name: 'Solar Vanguard Flag',    icon: '🚩', desc: 'Plant this anywhere to show Solar Vanguard pride. Counts toward your team\'s flag quest.',    sellPrice: 0 },
 };
 
 // Active buffs
-const BUFFS = { luck: 0, xpBoost: 0, treasureMap: false, magnet: 0 };
+const BUFFS = {
+  luck: 0,            // dice-roll luck charges (Luck Ticket)
+  xpBoost: 0,          // double-XP charges (XP Boost)
+  reachUntil: 0,        // timestamp until which the 5km Reach Ticket is active
+  doubleDrop: 0,        // remaining field-collects that give 2x loot
+  sprintReady: false,   // next special action skips cooldown
+  insuranceReady: false,// next vault deposit counts double toward quest progress
+  scannerUntil: 0,      // timestamp until which Scanner Ticket highlight is active
+};
 
 // =============================================
 //  SHOP CATALOG
 // =============================================
 const SHOP_ITEMS = [
-  { id: 'luck_ticket',  price: 120 },
-  { id: 'energy_drink', price: 80  },
-  { id: 'treasure_map', price: 250 },
-  { id: 'xp_boost',     price: 180 },
-  { id: 'magnet',       price: 150 },
-  { id: 'sturdy_pack',  price: 500 },
-  { id: 'compass',      price: 300 },
+  { id: 'luck_ticket',          price: 120 },
+  { id: 'xp_boost',             price: 180 },
+  { id: 'reach_ticket',         price: 180 },
+  { id: 'double_drop_ticket',   price: 150 },
+  { id: 'cooldown_skip_ticket', price: 500 },
+  { id: 'sprint_ticket',        price: 160 },
+  { id: 'insurance_ticket',     price: 680 },
+  { id: 'scanner_ticket',       price: 140 },
 ];
+
+const FLAG_PRICE = 500;
+const FLAG_BY_TEAM = { red: 'flag_red', green: 'flag_green', blue: 'flag_blue', yellow: 'flag_yellow' };
 
 // =============================================
 //  SEASONS — TEAM WARS
@@ -587,7 +748,7 @@ function buildQuestLine(teamId) {
 
     // Section 5 — field grinding, much higher bar than before
     { n: 5, type: 'collect', target: 40,
-      label: 'Collect 40 field items (crates, chests, etc.) anywhere' },
+      label: 'Collect 40 field items (dumpsters, pawn shops, etc.) anywhere' },
 
     // Section 6 — big gold wall + a rare item starts appearing
     { n: 6, type: 'multi', target: { vault_gold: 1500, vault_item_fossil: 10 },
@@ -606,8 +767,8 @@ function buildQuestLine(teamId) {
       label: 'Deposit 15 💍 Gems into the Vault AND collect 20 more field items' },
 
     // Section 10 — the finale: a steep combined wall across every resource type
-    { n: 10, type: 'vault_final', goldTarget: 4000, itemTarget: { fossil: 25, gem: 25, ancient_map: 15 },
-      label: 'FINAL: Deposit 4,000 🪙 Gold + 25 🦴 Fossils + 25 💍 Gems + 15 🗺️ Ancient Maps — first team to finish wins the Season!' },
+    { n: 10, type: 'flags', target: 50,
+      label: 'FINAL: Place 50 flags anywhere in America! First team to plant 50 wins the Season!' },
   ];
 }
 
@@ -625,7 +786,7 @@ TEAMS.forEach(t => {
     questLine: buildQuestLine(t.id),
     currentSection: 1,       // next section the team must complete (1-10)
     vault: { gold: 0, items: {} },
-    counters: { dice: 0, collect: 0, special: 0 }, // progress trackers for non-vault quests
+    counters: { dice: 0, collect: 0, special: 0, flags: 0 }, // progress trackers for non-vault quests
   };
 });
 
@@ -644,16 +805,30 @@ function seasonAddCounter(type, amount = 1) {
 
 function seasonDepositToVault(itemId, qty) {
   if (!SEASON.playerTeam || SEASON.ended) { showToast('🏳️ Join a team in the Seasons tab first!'); return false; }
+  const team = SEASON.teams[SEASON.playerTeam];
+
   if (itemId === 'gold') {
     if (STATE.gold < qty) { showToast('🪙 Not enough gold!'); return false; }
     STATE.gold -= qty;
-    SEASON.teams[SEASON.playerTeam].vault.gold += qty;
+    team.vault.gold += qty;
   } else {
     if (!STATE.inventory[itemId] || STATE.inventory[itemId] < qty) { showToast(`Not enough ${ITEMS[itemId]?.name || itemId}!`); return false; }
     STATE.inventory[itemId] -= qty;
     if (STATE.inventory[itemId] <= 0) delete STATE.inventory[itemId];
-    SEASON.teams[SEASON.playerTeam].vault.items[itemId] = (SEASON.teams[SEASON.playerTeam].vault.items[itemId] || 0) + qty;
+    team.vault.items[itemId] = (team.vault.items[itemId] || 0) + qty;
   }
+
+  // Vault Insurance Ticket: the NEXT deposit counts double toward quest progress.
+  // This adds a virtual bonus on top of the real deposit (tracked separately so
+  // the vault display always shows the true, honest amount actually deposited).
+  if (BUFFS.insuranceReady) {
+    if (itemId === 'gold') team.vault.gold += qty;
+    else team.vault.items[itemId] = (team.vault.items[itemId] || 0) + qty;
+    BUFFS.insuranceReady = false;
+    addLog(`🛡️ Vault Insurance Ticket consumed — this deposit counted double toward your quest!`, 'good');
+    showToast(`🛡️ Deposit counted 2×!`);
+  }
+
   updateHUD(); updateInventoryUI();
   checkSectionComplete(SEASON.playerTeam);
   renderSeasonsTab();
@@ -672,6 +847,7 @@ function evalRequirement(team, key, target) {
   if (key === 'dice')    return { have: team.counters.dice,    need: target, met: team.counters.dice    >= target };
   if (key === 'collect') return { have: team.counters.collect, need: target, met: team.counters.collect >= target };
   if (key === 'special') return { have: team.counters.special, need: target, met: team.counters.special >= target };
+  if (key === 'flags')   return { have: team.counters.flags,   need: target, met: team.counters.flags   >= target };
   return { have: 0, need: target, met: false };
 }
 
@@ -687,13 +863,9 @@ function checkSectionComplete(teamId) {
   if (section.type === 'dice')        complete = team.counters.dice >= section.target;
   if (section.type === 'collect')     complete = team.counters.collect >= section.target;
   if (section.type === 'special')     complete = team.counters.special >= section.target;
+  if (section.type === 'flags')       complete = team.counters.flags >= section.target;
   if (section.type === 'multi') {
     complete = Object.entries(section.target).every(([key, target]) => evalRequirement(team, key, target).met);
-  }
-  if (section.type === 'vault_final') {
-    const goldOk = team.vault.gold >= section.goldTarget;
-    const itemsOk = Object.entries(section.itemTarget).every(([id, amt]) => (team.vault.items[id] || 0) >= amt);
-    complete = goldOk && itemsOk;
   }
 
   if (complete) {
@@ -726,11 +898,12 @@ function startNewSeason() {
       questLine: buildQuestLine(t.id),
       currentSection: 1,
       vault: { gold: 0, items: {} },
-      counters: { dice: 0, collect: 0, special: 0 },
+      counters: { dice: 0, collect: 0, special: 0, flags: 0 },
     };
   });
   addLog(`🆕 Season ${SEASON.number} has begun! Pick your team in the Seasons tab.`, 'info');
   renderSeasonsTab();
+  renderFlagShop();
 }
 
 function joinTeam(teamId) {
@@ -738,6 +911,265 @@ function joinTeam(teamId) {
   SEASON.playerTeam = teamId;
   addLog(`🏳️ You joined the ${TEAMS.find(t=>t.id===teamId).name}!`, 'special');
   showToast(`🏳️ Joined ${TEAMS.find(t=>t.id===teamId).name}!`);
+  renderSeasonsTab();
+  renderFlagShop();
+}
+
+// =============================================
+//  MAIN MENU
+// =============================================
+let gameStarted = false;
+
+function openSinglePlayerSetup() {
+  const setup = document.getElementById('menu-sp-setup');
+  const buttons = document.getElementById('menu-buttons');
+  buttons.style.display = 'none';
+  setup.style.display = 'block';
+
+  const grid = document.getElementById('menu-team-grid');
+  grid.innerHTML = TEAMS.map(t => `
+    <button class="menu-team-btn" style="background:${t.color};" onclick="startSinglePlayer('${t.id}')">${t.name}</button>
+  `).join('');
+}
+
+function closeSinglePlayerSetup() {
+  document.getElementById('menu-sp-setup').style.display = 'none';
+  document.getElementById('menu-buttons').style.display = 'flex';
+}
+
+function startSinglePlayer(teamId) {
+  // Hide the menu, reveal the game
+  document.getElementById('menu-overlay').style.display = 'none';
+  document.getElementById('game-root').classList.add('active');
+  gameStarted = true;
+
+  // Join the chosen team
+  SEASON.playerTeam = teamId;
+  addLog(`🏳️ You joined the ${TEAMS.find(t=>t.id===teamId).name}!`, 'special');
+
+  // Spawn a bot for each of the other 3 teams
+  const otherTeams = TEAMS.filter(t => t.id !== teamId);
+  initBots(otherTeams.map(t => t.id));
+
+  renderSeasonsTab();
+  renderFlagShop();
+  showToast(`🎮 Single Player started! 3 bots are playing the other teams.`);
+
+  // Kick off GPS lookup now that the game is actually visible
+  setTimeout(() => { map.invalidateSize(); locatePlayer(); }, 200);
+}
+
+function openHowToPlay() {
+  document.getElementById('howto-overlay').style.display = 'flex';
+}
+function closeHowToPlay() {
+  document.getElementById('howto-overlay').style.display = 'none';
+}
+
+// =============================================
+//  BOTS (Single Player)
+// =============================================
+const BOTS = []; // { teamId, lat, lng, marker, targetLat, targetLng, name }
+const BOT_MOVE_INTERVAL_MS = 4000;       // how often a bot advances toward its target
+const BOT_SPEED_KM_PER_TICK = 0.05;      // ~45 km/h equivalent at this tick rate — a brisk car/bike pace on the map
+const BOT_TICK_INTERVAL_MS = 5 * 60000;  // bots attempt a quest action once every 5 minutes (not every few seconds)
+
+// Bots respect the SAME real-world cooldowns a human player would face, so
+// they can't blow through a season in minutes:
+//   - Dice Stations: 5 hours, identical to the player's actual station cooldown.
+//   - Special City Actions: 30 minutes, identical to the player's per-city cooldown.
+// Vault deposits / collects / flags have no hard cooldown for the player either,
+// but bots still only act once per 5-minute tick and only add modest amounts,
+// so those sections take hours of real time rather than minutes.
+const BOT_DICE_COOLDOWN_MS = 5 * 60 * 60 * 1000;
+const BOT_SPECIAL_COOLDOWN_MS = 30 * 60 * 1000;
+
+const BOT_NAMES = { red: 'Crimson Bot', green: 'Emerald Bot', blue: 'Sapphire Bot', yellow: 'Solar Bot' };
+
+// Find a random valid on-land point anywhere in the continental US.
+function randomLandPoint() {
+  const LAT_MIN = 25.5, LAT_MAX = 48.5;
+  const LNG_MIN = -124.5, LNG_MAX = -67.5;
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const lat = LAT_MIN + Math.random() * (LAT_MAX - LAT_MIN);
+    const lng = LNG_MIN + Math.random() * (LNG_MAX - LNG_MIN);
+    if (isOnLand(lat, lng)) return { lat, lng };
+  }
+  // Fallback — center of the country (Kansas), always land
+  return { lat: 39.0, lng: -98.0 };
+}
+
+// Find a random valid on-land point within `radiusKm` of a given point (used for picking the next waypoint).
+function randomNearbyLandPoint(lat, lng, radiusKm) {
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const dist = Math.random() * radiusKm;
+    const dLat = (dist / 111) * Math.cos(angle);
+    const dLng = (dist / (111 * Math.cos(lat * Math.PI / 180))) * Math.sin(angle);
+    const newLat = lat + dLat, newLng = lng + dLng;
+    if (isOnLand(newLat, newLng)) return { lat: newLat, lng: newLng };
+  }
+  return null; // couldn't find a valid nearby point this try — caller should retry next tick
+}
+
+function botIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `
+      <div style="position:relative;width:22px;height:22px;">
+        <div style="position:absolute;top:50%;left:50%;width:24px;height:24px;border-radius:50%;
+          background:${color}33;transform:translate(-50%,-50%);"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35);"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:12px;height:12px;border-radius:50%;background:${color};"></div>
+      </div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+}
+
+function initBots(teamIds) {
+  // Clear any existing bots first (e.g. if starting a fresh single-player session)
+  BOTS.forEach(b => { if (b.marker) b.marker.remove(); });
+  BOTS.length = 0;
+
+  teamIds.forEach(teamId => {
+    const team = TEAMS.find(t => t.id === teamId);
+    const start = randomLandPoint();
+    const marker = L.marker([start.lat, start.lng], { icon: botIcon(team.color) })
+      .addTo(map)
+      .bindPopup(`<b>${BOT_NAMES[teamId]}</b><br><i style="font-size:.78rem;">Playing for ${team.name}</i>`, { maxWidth: 180 });
+    BOTS.push({
+      teamId,
+      lat: start.lat, lng: start.lng,
+      targetLat: start.lat, targetLng: start.lng,
+      marker,
+      name: BOT_NAMES[teamId],
+      lastDiceAt: 0,     // respects the same 5h real cooldown as the player's Dice Stations
+      lastSpecialAt: 0,  // respects the same 30min real cooldown as the player's Special Actions
+    });
+  });
+
+  startBotLoops();
+}
+
+let botMoveTimer = null;
+let botActionTimer = null;
+
+function startBotLoops() {
+  if (botMoveTimer) clearInterval(botMoveTimer);
+  if (botActionTimer) clearInterval(botActionTimer);
+
+  botMoveTimer = setInterval(() => { BOTS.forEach(moveBotOneTick); }, BOT_MOVE_INTERVAL_MS);
+  botActionTimer = setInterval(() => { BOTS.forEach(performBotAction); }, BOT_TICK_INTERVAL_MS);
+}
+
+// Move a bot one step toward its current target, picking a new target if it
+// arrived or doesn't have one yet. Every candidate point is land-checked
+// before being committed to, so bots can never end up in water.
+function moveBotOneTick(bot) {
+  const distToTarget = haversineKm(bot.lat, bot.lng, bot.targetLat, bot.targetLng);
+
+  if (distToTarget < BOT_SPEED_KM_PER_TICK || (bot.targetLat === bot.lat && bot.targetLng === bot.lng)) {
+    // Pick a new nearby target (a "reasonable" walk/drive distance — 5-40km away)
+    const next = randomNearbyLandPoint(bot.lat, bot.lng, 5 + Math.random() * 35);
+    if (next) { bot.targetLat = next.lat; bot.targetLng = next.lng; }
+    return; // wait for next tick to actually start moving toward it
+  }
+
+  // Step toward the target by BOT_SPEED_KM_PER_TICK, but verify the stepped-to
+  // point is still on land before committing (guards against cutting across
+  // a bay/inlet where a straight line might briefly cross water).
+  const frac = Math.min(1, BOT_SPEED_KM_PER_TICK / distToTarget);
+  const newLat = bot.lat + (bot.targetLat - bot.lat) * frac;
+  const newLng = bot.lng + (bot.targetLng - bot.lng) * frac;
+
+  if (isOnLand(newLat, newLng)) {
+    bot.lat = newLat;
+    bot.lng = newLng;
+    bot.marker.setLatLng([bot.lat, bot.lng]);
+  } else {
+    // That step would cross water — abandon this target and pick a fresh one next tick
+    bot.targetLat = bot.lat;
+    bot.targetLng = bot.lng;
+  }
+}
+
+// Bots periodically advance their team's quest: deposit gold/items into the
+// vault, place flags once their team reaches Section 10, or use a dice
+// station — whichever fits their team's current quest section.
+//
+// Bots are deliberately throttled to feel like a real, moderately active
+// player rather than an instant quest-clearing machine:
+//   - Dice and Special actions are gated by the SAME real-world cooldowns
+//     the human player faces (5h and 30min respectively).
+//   - Gold/item/collect/flag progress is small per-tick and ticks only once
+//     every 5 minutes, so those sections take multiple hours of real time.
+function performBotAction(bot) {
+  if (SEASON.ended) return;
+  const team = SEASON.teams[bot.teamId];
+  if (!team) return;
+  const section = team.questLine[team.currentSection - 1];
+  if (!section) return;
+
+  function botCheckComplete() {
+    checkSectionComplete(bot.teamId);
+  }
+
+  // Small helper: advance one requirement "key" by a modest amount, respecting
+  // real cooldowns for dice/special. Returns true if it actually advanced.
+  function advance(key) {
+    const now = Date.now();
+    if (key === 'vault_gold') {
+      team.vault.gold += Math.floor(8 + Math.random() * 12); // ~8-20 gold per 5-min tick
+      return true;
+    }
+    if (key.startsWith('vault_item_')) {
+      const itemId = key.replace('vault_item_', '');
+      // Items trickle in slower than gold — only succeeds ~40% of ticks
+      if (Math.random() < 0.4) {
+        team.vault.items[itemId] = (team.vault.items[itemId] || 0) + 1;
+        return true;
+      }
+      return false;
+    }
+    if (key === 'dice') {
+      if (now - bot.lastDiceAt < BOT_DICE_COOLDOWN_MS) return false; // same 5h gate as the player
+      bot.lastDiceAt = now;
+      team.counters.dice += 1;
+      return true;
+    }
+    if (key === 'special') {
+      if (now - bot.lastSpecialAt < BOT_SPECIAL_COOLDOWN_MS) return false; // same 30min gate as the player
+      bot.lastSpecialAt = now;
+      team.counters.special += 1;
+      return true;
+    }
+    if (key === 'collect') {
+      // One field item every couple of ticks, not every tick
+      if (Math.random() < 0.5) { team.counters.collect += 1; return true; }
+      return false;
+    }
+    if (key === 'flags') {
+      // Flags are deliberately the slowest — roughly 1 every 2-3 ticks
+      if (Math.random() < 0.4) { team.counters.flags += 1; return true; }
+      return false;
+    }
+    return false;
+  }
+
+  if (section.type === 'multi') {
+    // Advance one random sub-requirement that isn't met yet
+    const unmet = Object.entries(section.target).filter(([key, target]) => !evalRequirement(team, key, target).met);
+    if (unmet.length) {
+      const [key] = unmet[Math.floor(Math.random() * unmet.length)];
+      if (advance(key)) botCheckComplete();
+    }
+  } else {
+    if (advance(section.type)) botCheckComplete();
+  }
+
   renderSeasonsTab();
 }
 
@@ -750,12 +1182,13 @@ const DICE_MARKERS = {};
 const diceLastUsed = {}; // stationId -> timestamp
 
 function generateDiceStation(cityLat, cityLng, cityId) {
-  // Place one dice station near the city center (within ~1.5km), seeded for consistency
+  // Place the dice station out in the suburbs/outskirts (6-18km from downtown),
+  // never in the dense city center, for the same safety/access reasons as item spawns.
   const seed = cityId.split('').reduce((a, c) => a + c.charCodeAt(0), 0) + 999;
   const r1 = mulberry32(seed);
   const r2 = mulberry32(seed * 7);
   const angle = r1 * 2 * Math.PI;
-  const dist = 0.3 + r2 * 1.2; // 0.3km - 1.5km from city center
+  const dist = 6 + r2 * 12; // 6km - 18km from city center
   const dLat = (dist / 111) * Math.cos(angle);
   const dLng = (dist / (111 * Math.cos(cityLat * Math.PI / 180))) * Math.sin(angle);
   return {
@@ -801,11 +1234,12 @@ function diceStationPopupHTML(station) {
   }
 
   const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, station.lat, station.lng) : Infinity;
-  const inRange = dist <= COLLECT_RADIUS_KM;
+  const radius = effectiveRadiusKm();
+  const inRange = dist <= radius;
   const distStr = dist === Infinity ? 'Unknown' : dist < 1 ? `${Math.round(dist*1000)} m` : `${dist.toFixed(1)} km`;
 
-  return `<b>🎲 Dice Station</b><br><i style="font-size:.78rem;">Roll for gold, XP, or rare loot. Counts toward Season dice quests!</i><br>
-    <small style="color:#aaa;">📍 ${distStr} away</small><br>
+  return `<b>🎲 Dice Station</b><br><i style="font-size:.78rem;">Roll for gold and XP. Luck Tickets improve your odds. Counts toward Season dice quests!</i><br>
+    <small style="color:#aaa;">📍 ${distStr} away${radius > COLLECT_RADIUS_KM ? ' (📡 Reach active)' : ''}</small><br>
     <button class="dice-popup-btn" onclick="useDiceStation('${station.id}')"
       style="background:${inRange ? '#a371f7' : '#555'};color:${inRange ? '#fff' : '#aaa'};cursor:${inRange ? 'pointer' : 'not-allowed'};" ${inRange ? '' : 'disabled'}>
       ${inRange ? '🎲 Roll the Dice' : `🔒 Too far (${distStr})`}
@@ -820,18 +1254,26 @@ function useDiceStation(stationId) {
   if (Date.now() - last < DICE_COOLDOWN_MS) { showToast('🎲 Station is on cooldown!'); return; }
 
   const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, station.lat, station.lng) : Infinity;
-  if (dist > COLLECT_RADIUS_KM) { showToast('🔒 Too far from the Dice Station!'); return; }
+  if (dist > effectiveRadiusKm()) { showToast('🔒 Too far from the Dice Station!'); return; }
 
   diceLastUsed[stationId] = Date.now();
 
-  // Roll outcome
-  const roll = Math.floor(Math.random() * 6) + 1;
+  // Roll outcome — Luck Ticket grants "advantage": roll twice, keep the higher result
+  let roll = Math.floor(Math.random() * 6) + 1;
+  let luckUsed = false;
+  if (BUFFS.luck > 0) {
+    const secondRoll = Math.floor(Math.random() * 6) + 1;
+    roll = Math.max(roll, secondRoll);
+    BUFFS.luck--;
+    luckUsed = true;
+  }
+
   let goldWin = roll * 30;
   let xpWin = roll * 8;
   STATE.gold += goldWin;
   gainXP(xpWin);
-  addLog(`🎲 Rolled a ${roll} at the Dice Station! +🪙${goldWin} +${xpWin} XP`, 'good');
-  showToast(`🎲 Rolled ${roll}! +🪙${goldWin}`);
+  addLog(`🎲 Rolled a ${roll} at the Dice Station${luckUsed ? ' (🍀 Luck Ticket boosted this roll)' : ''}! +🪙${goldWin} +${xpWin} XP`, 'good');
+  showToast(`🎲 Rolled ${roll}!${luckUsed ? ' 🍀' : ''} +🪙${goldWin}`);
 
   if (roll === 6) {
     addItem('gem');
@@ -844,6 +1286,7 @@ function useDiceStation(stationId) {
   updateHUD(); updateInventoryUI();
   const marker = DICE_MARKERS[stationId];
   if (marker) marker.getPopup().setContent(diceStationPopupHTML(station));
+  if (STATE.lat != null) updateNearbyDiceList(STATE.lat, STATE.lng);
 }
 
 // =============================================
@@ -1015,16 +1458,19 @@ function makePlayerIcon() {
 
 // ── Spawn object types ──────────────────────────────────────────────────────
 const SPAWN_TYPES = [
-  { id:'crate',     emoji:'📦', label:'Supply Crate',   rarity:'common',   glow:'#a0c4ff', loot:['herb','crystal','coin_bag'],            xp:20, desc:'A supply crate! Pop it open for basic loot.' },
-  { id:'chest',     emoji:'🪙', label:'Gold Chest',     rarity:'uncommon', glow:'#ffd700', loot:['coin_bag','gem','crystal'],             xp:35, desc:'A glinting chest — could be riches inside!' },
-  { id:'barrel',    emoji:'🛢️', label:'Mystery Barrel', rarity:'common',   glow:'#8ecae6', loot:['herb','coin_bag','luck_ticket'],        xp:15, desc:'An old barrel. Smells strange but feels heavy.' },
-  { id:'bag',       emoji:'🎒', label:'Lost Backpack',  rarity:'common',   glow:'#caffbf', loot:['herb','crystal','energy_drink'],        xp:18, desc:'Someone left their bag behind.' },
-  { id:'vault',     emoji:'🔐', label:'Mini Vault',     rarity:'rare',     glow:'#ff6b6b', loot:['gem','ancient_map','treasure_map'],     xp:60, desc:'A locked vault. Crack it for rare rewards!' },
-  { id:'fossil_pit',emoji:'🦴', label:'Fossil Pit',     rarity:'uncommon', glow:'#d4a373', loot:['fossil','crystal','ancient_map'],       xp:40, desc:'Bones stick out of the ground here.' },
-  { id:'camp',      emoji:'⛺', label:'Old Camp',       rarity:'uncommon', glow:'#90e0ef', loot:['herb','energy_drink','coin_bag'],       xp:25, desc:'An abandoned campsite with leftover supplies.' },
-  { id:'shrine',    emoji:'⛩️', label:'Lucky Shrine',   rarity:'rare',     glow:'#c77dff', loot:['luck_ticket','xp_boost','gem'],         xp:55, desc:'A mystical shrine radiating good fortune.' },
-  { id:'airdrop',   emoji:'📫', label:'Airdrop Box',    rarity:'uncommon', glow:'#f9c74f', loot:['energy_drink','xp_boost','coin_bag'],   xp:30, desc:'A military airdrop crate from who knows where.' },
-  { id:'dig_spot',  emoji:'⚒️', label:'Dig Spot',       rarity:'common',   glow:'#b5838d', loot:['fossil','crystal','herb'],              xp:20, desc:'The ground looks disturbed here…' },
+  // ── Dumpsters — common, low-value finds from dumpster diving ──────────────
+  { id:'dumpster',        emoji:'🗑️', label:'Dumpster',          rarity:'common',   glow:'#8ecae6', loot:['herb','crystal','coin_bag'],            xp:20, desc:'A dumpster behind a building. Worth a dig through.' },
+  { id:'dumpster_alley',  emoji:'🗑️', label:'Alley Dumpster',    rarity:'common',   glow:'#a0c4ff', loot:['herb','coin_bag','luck_ticket'],        xp:15, desc:'Tucked away in an alley. Someone tossed something useful.' },
+  { id:'recycling_bin',   emoji:'♻️', label:'Recycling Bin',     rarity:'common',   glow:'#caffbf', loot:['herb','crystal','double_drop_ticket'],  xp:18, desc:'A curbside recycling bin. Might have a hidden gem.' },
+  { id:'dumpster_loading',emoji:'🗑️', label:'Loading Dock Dumpster', rarity:'uncommon', glow:'#90e0ef', loot:['coin_bag','scanner_ticket','crystal'], xp:28, desc:'A big commercial dumpster behind a loading dock.' },
+  { id:'construction_bin',emoji:'🪣', label:'Construction Bin',  rarity:'uncommon', glow:'#d4a373', loot:['fossil','crystal','ancient_map'],       xp:32, desc:'A debris bin outside a construction site.' },
+
+  // ── Pawn Shops — better, more valuable finds ───────────────────────────────
+  { id:'pawn_shop',       emoji:'🏪', label:'Pawn Shop',         rarity:'uncommon', glow:'#ffd700', loot:['coin_bag','gem','crystal'],             xp:35, desc:'A small pawn shop with a deal worth grabbing.' },
+  { id:'pawn_shop_jewel', emoji:'💎', label:'Pawn Shop Jewelry Case', rarity:'rare', glow:'#ff6b6b', loot:['gem','ancient_map','insurance_ticket'], xp:60, desc:'The jewelry display case — the good stuff is in here.' },
+  { id:'pawn_shop_relic', emoji:'🏺', label:'Pawn Shop Back Room', rarity:'uncommon', glow:'#f9c74f', loot:['sprint_ticket','xp_boost','ancient_map'], xp:38, desc:'The back room where the pawn shop keeps the interesting stuff.' },
+  { id:'pawn_shop_vault', emoji:'🔐', label:'Pawn Shop Vault',   rarity:'rare',     glow:'#c77dff', loot:['luck_ticket','xp_boost','gem'],         xp:55, desc:'The shop owner\'s personal lockbox. Jackpot if you can get in.' },
+  { id:'pawn_shop_counter', emoji:'🪙', label:'Pawn Shop Counter', rarity:'common', glow:'#b5838d', loot:['fossil','crystal','herb'],              xp:22, desc:'Stuff piled up at the counter, waiting to be priced.' },
 ];
 
 // ── Deterministic seeded RNG (mulberry32) ────────────────────────────────────
@@ -1035,38 +1481,78 @@ function mulberry32(seed) {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
+// =============================================
+//  US LAND BOUNDARY (for bot movement — bots can't walk into water)
+// =============================================
+// Simplified contiguous-US coastline polygon, [lng, lat] pairs.
+// Good enough resolution (~15km) to reliably tell "roughly on land" vs "in the ocean/Great Lakes".
+const US_MAINLAND_POLYGON = [[-94.523,29.546],[-94.742,29.787],[-94.967,29.7],[-94.896,29.311],[-95.985,28.604],[-96.665,28.697],[-96.402,28.44],[-96.774,28.407],[-97.514,27.361],[-97.563,26.841],[-97.218,25.992],[-97.524,25.888],[-99.173,26.539],[-99.48,27.481],[-101.413,29.754],[-102.339,29.869],[-103.281,28.982],[-104.508,29.639],[-104.896,30.57],[-106.381,31.731],[-108.21,31.786],[-108.21,31.332],[-111.074,31.332],[-114.815,32.493],[-114.722,32.717],[-117.126,32.537],[-117.472,33.298],[-118.414,33.741],[-118.567,34.043],[-119.558,34.415],[-120.473,34.448],[-120.632,35.1],[-121.897,36.316],[-121.787,36.803],[-122.417,37.241],[-122.406,38.15],[-122.505,37.931],[-122.938,38.03],[-123.737,38.956],[-123.852,39.832],[-124.362,40.259],[-124.066,41.442],[-124.553,42.839],[-124.17,43.808],[-123.945,46.114],[-123.545,46.262],[-124.066,46.327],[-123.896,46.536],[-124.624,47.888],[-124.597,48.381],[-122.801,48.086],[-122.516,47.883],[-122.423,47.319],[-122.231,48.031],[-122.757,49.0],[-95.153,49.0],[-95.153,49.384],[-94.956,49.373],[-94.589,48.715],[-93.795,48.518],[-92.984,48.622],[-91.566,48.042],[-90.837,48.239],[-89.616,48.009],[-90.739,47.626],[-92.015,46.705],[-90.837,46.957],[-90.886,46.755],[-90.415,46.568],[-88.181,47.456],[-87.956,47.385],[-88.438,46.788],[-87.902,46.908],[-87.261,46.486],[-85.064,46.76],[-85.026,46.481],[-84.128,46.53],[-83.991,46.032],[-83.476,45.988],[-84.659,46.054],[-84.703,45.851],[-85.503,46.097],[-86.664,45.703],[-86.784,45.862],[-87.819,44.953],[-88.044,44.564],[-87.031,45.221],[-87.912,43.249],[-87.836,42.302],[-87.425,41.645],[-86.62,41.891],[-86.209,42.718],[-86.527,43.594],[-86.253,44.69],[-85.612,45.128],[-85.525,44.75],[-85.388,45.238],[-85.032,45.364],[-85.119,45.577],[-84.714,45.769],[-83.317,45.144],[-83.334,44.339],[-83.909,43.671],[-83.668,43.589],[-82.917,44.071],[-82.644,43.852],[-82.518,42.614],[-82.797,42.652],[-83.454,41.732],[-82.479,41.382],[-79.149,42.554],[-78.854,42.784],[-79.073,43.26],[-76.959,43.271],[-76.236,43.529],[-76.312,44.197],[-74.828,45.019],[-71.504,45.013],[-71.361,45.27],[-70.649,45.44],[-69.997,46.694],[-69.225,47.461],[-68.902,47.176],[-68.234,47.357],[-67.79,47.067],[-67.801,45.676],[-67.456,45.605],[-67.489,45.281],[-66.98,44.805],[-68.048,44.328],[-68.223,44.487],[-68.404,44.252],[-68.984,44.427],[-69.258,43.923],[-70.255,43.677],[-70.989,42.269],[-70.54,41.814],[-69.937,41.809],[-70.008,41.672],[-71.317,41.475],[-71.345,41.727],[-71.482,41.371],[-72.906,41.283],[-73.656,40.987],[-72.281,41.157],[-72.101,40.993],[-73.24,40.626],[-74.187,40.642],[-74.275,40.489],[-73.979,40.297],[-74.1,39.761],[-74.795,38.994],[-75.611,39.618],[-75.047,38.452],[-75.973,37.121],[-75.672,37.953],[-75.885,37.909],[-75.847,38.211],[-76.329,38.501],[-76.279,39.147],[-75.973,39.558],[-76.367,39.312],[-76.559,38.769],[-76.362,38.057],[-77.019,38.446],[-77.205,38.359],[-77.249,38.589],[-77.282,38.342],[-76.236,37.888],[-76.274,37.082],[-76.668,37.066],[-75.995,36.924],[-75.754,36.151],[-76.674,35.938],[-75.781,35.938],[-75.776,35.582],[-76.482,35.313],[-76.279,34.941],[-76.493,34.662],[-77.211,34.607],[-77.972,33.846],[-78.936,33.637],[-79.357,33.008],[-80.886,32.033],[-81.4,31.134],[-81.258,29.787],[-80.524,28.462],[-80.031,26.797],[-80.146,25.74],[-80.497,25.197],[-81.077,25.121],[-81.351,25.822],[-81.68,25.844],[-82.058,26.879],[-82.249,26.758],[-82.693,27.438],[-82.392,27.837],[-82.72,27.689],[-82.852,27.887],[-82.644,28.889],[-84.024,30.105],[-85.311,29.7],[-85.924,30.236],[-86.631,30.395],[-87.655,30.247],[-88.011,30.685],[-88.137,30.318],[-88.844,30.412],[-89.818,30.045],[-89.287,29.88],[-89.698,29.513],[-89.002,29.179],[-89.161,29.009],[-89.851,29.48],[-90.103,29.152],[-90.563,29.283],[-90.799,29.086],[-91.889,29.836],[-92.31,29.535],[-93.225,29.776],[-94.523,29.546]];
+
+// Ray-casting point-in-polygon test. poly is an array of [lng, lat] pairs.
+function pointInPolygon(lat, lng, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    const intersects = ((yi > lat) !== (yj > lat)) &&
+      (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+// Convenience: is this lat/lng roughly on continental US land?
+function isOnLand(lat, lng) {
+  return pointInPolygon(lat, lng, US_MAINLAND_POLYGON);
+}
+
 // ── Generate field spawns around a city ─────────────────────────────────────
 //    Uses seeded RNG so spawns are consistent for the same city every time.
+// Spawns are placed in a ring around each city — explicitly EXCLUDING the
+// busy downtown core — so players are guided to quieter outskirts, suburbs,
+// and surrounding areas rather than into dense/high-traffic city centers.
+const SPAWN_INNER_RADIUS_KM = 4;   // nothing spawns closer than this to downtown
+const SPAWN_OUTER_RADIUS_KM = 22;  // spawns can range out this far from the city
+
 function generateCitySpawns(cityLat, cityLng, cityId) {
   const seed = cityId.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const COUNT = 18; // spawns per city
-  const RADIUS_KM = 8;
   const spawns = [];
+
+  // Stratified angular sectors: divide the full circle into COUNT equal wedges
+  // and place one spawn per wedge (with jitter inside it). This guarantees
+  // even 360° coverage around every city regardless of how close neighboring
+  // cities are — pure random angles let nearby cities' rings overlap into
+  // dense clusters while leaving other directions empty.
+  const sectorSize = (2 * Math.PI) / COUNT;
 
   for (let i = 0; i < COUNT; i++) {
     const r1 = mulberry32(seed * 31 + i * 7);
     const r2 = mulberry32(seed * 17 + i * 13);
     const r3 = mulberry32(seed * 53 + i * 3);
 
-    // Random point in circle
-    const angle = r1 * 2 * Math.PI;
-    const dist  = Math.sqrt(r2) * RADIUS_KM;  // sqrt for uniform distribution
-    const dLat  = (dist / 111) * Math.cos(angle);
-    const dLng  = (dist / (111 * Math.cos(cityLat * Math.PI / 180))) * Math.sin(angle);
+    // Angle = base sector position + random jitter within that sector
+    const angle = (i * sectorSize) + (r1 * sectorSize);
+
+    const innerSq = SPAWN_INNER_RADIUS_KM * SPAWN_INNER_RADIUS_KM;
+    const outerSq = SPAWN_OUTER_RADIUS_KM * SPAWN_OUTER_RADIUS_KM;
+    const dist = Math.sqrt(innerSq + r2 * (outerSq - innerSq)); // uniform density across the ring
+    const dLat = (dist / 111) * Math.cos(angle);
+    const dLng = (dist / (111 * Math.cos(cityLat * Math.PI / 180))) * Math.sin(angle);
 
     // Pick type weighted by rarity
     const rarityRoll = r3;
     let typeIdx;
-    if      (rarityRoll < 0.05) typeIdx = SPAWN_TYPES.findIndex(t => t.rarity === 'rare' && t.id === 'vault');
-    else if (rarityRoll < 0.10) typeIdx = SPAWN_TYPES.findIndex(t => t.rarity === 'rare' && t.id === 'shrine');
-    else if (rarityRoll < 0.20) typeIdx = SPAWN_TYPES.findIndex(t => t.rarity === 'uncommon' && t.id === 'chest');
-    else if (rarityRoll < 0.30) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'fossil_pit');
-    else if (rarityRoll < 0.40) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'camp');
-    else if (rarityRoll < 0.50) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'airdrop');
-    else if (rarityRoll < 0.62) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'barrel');
-    else if (rarityRoll < 0.74) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'bag');
-    else if (rarityRoll < 0.86) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dig_spot');
-    else                        typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'crate');
+    if      (rarityRoll < 0.05) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_vault');
+    else if (rarityRoll < 0.10) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_jewel');
+    else if (rarityRoll < 0.20) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop');
+    else if (rarityRoll < 0.30) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'construction_bin');
+    else if (rarityRoll < 0.40) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_relic');
+    else if (rarityRoll < 0.50) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster_loading');
+    else if (rarityRoll < 0.62) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster_alley');
+    else if (rarityRoll < 0.74) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'recycling_bin');
+    else if (rarityRoll < 0.86) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_counter');
+    else                        typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster');
     if (typeIdx < 0) typeIdx = 0;
 
     spawns.push({
@@ -1089,8 +1575,8 @@ const SPAWN_MARKERS = {};
 const RARITY_COLORS = { common: '#64b5f6', uncommon: '#ffd54f', rare: '#ef5350' };
 // Icon shape letter per type
 const TYPE_LETTERS = {
-  crate:'C', chest:'$', barrel:'B', bag:'P', vault:'V',
-  fossil_pit:'F', camp:'K', shrine:'S', airdrop:'A', dig_spot:'D'
+  dumpster:'D', dumpster_alley:'D', recycling_bin:'R', dumpster_loading:'D', construction_bin:'C',
+  pawn_shop:'P', pawn_shop_jewel:'J', pawn_shop_relic:'P', pawn_shop_vault:'V', pawn_shop_counter:'P'
 };
 
 function makeSpawnIcon(spawn) {
@@ -1120,7 +1606,15 @@ function makeSpawnIcon(spawn) {
   });
 }
 
-const COLLECT_RADIUS_KM = 1.0; // must be within 1 km
+const COLLECT_RADIUS_KM = 1.0;       // normal interaction radius: must be within 1 km
+const REACH_TICKET_RADIUS_KM = 5.0;  // Reach Ticket active radius: within 5 km
+
+// Returns the radius (km) the player can currently interact within,
+// accounting for an active Reach Ticket buff.
+function effectiveRadiusKm() {
+  if (BUFFS.reachUntil && Date.now() < BUFFS.reachUntil) return REACH_TICKET_RADIUS_KM;
+  return COLLECT_RADIUS_KM;
+}
 
 function distToSpawn(spawn) {
   if (STATE.lat == null || STATE.lng == null) return Infinity;
@@ -1138,7 +1632,8 @@ function spawnPopupHTML(spawn) {
   }
 
   const dist    = distToSpawn(spawn);
-  const inRange = dist <= COLLECT_RADIUS_KM;
+  const radius  = effectiveRadiusKm();
+  const inRange = dist <= radius;
   const distStr = dist === Infinity ? 'Unknown distance'
                 : dist < 0.1 ? 'Right here!'
                 : dist < 1   ? `${Math.round(dist * 1000)} m away`
@@ -1147,13 +1642,13 @@ function spawnPopupHTML(spawn) {
   const btnStyle = inRange
     ? 'background:#4285F4;color:#fff;cursor:pointer;'
     : 'background:#555;color:#aaa;cursor:not-allowed;';
-  const btnLabel = inRange ? '📦 Collect (1 ⚡)' : `🔒 Too far (${distStr})`;
+  const btnLabel = inRange ? '📦 Collect' : `🔒 Too far (${distStr})`;
 
   return `
     <b>${typeLabel}</b>
     <span style="font-size:.7rem;color:${rarityColor};margin-left:4px;">[${rarityName}]</span><br>
     <i style="font-size:.78rem;">${spawn.type.desc}</i><br>
-    <small style="color:#aaa;">+${spawn.type.xp} XP &nbsp;|&nbsp; 📍 ${distStr}</small><br>
+    <small style="color:#aaa;">+${spawn.type.xp} XP &nbsp;|&nbsp; 📍 ${distStr}${radius > COLLECT_RADIUS_KM ? ' (📡 Reach active)' : ''}</small><br>
     <button onclick="collectSpawn('${spawn.id}')"
             ${inRange ? '' : 'disabled'}
             style="margin-top:6px;border:none;border-radius:6px;padding:6px 14px;font-weight:700;font-size:.82rem;${btnStyle}">
@@ -1167,23 +1662,31 @@ function collectSpawn(spawnId) {
 
   // Proximity gate
   const dist = distToSpawn(spawn);
-  if (dist > COLLECT_RADIUS_KM) {
-    showToast(`🔒 Too far! Get within 1 km first. (${dist.toFixed(1)} km away)`);
+  const radius = effectiveRadiusKm();
+  if (dist > radius) {
+    showToast(`🔒 Too far! Get within ${radius} km first. (${dist.toFixed(1)} km away)`);
     return;
   }
 
-  if (!checkEnergy(1)) return;
-
   spawn.collected = true;
 
-  // Give loot
+  // Give loot — Double Drop Ticket grants a second item from the same pool
   const lootPool = spawn.type.loot;
   const picked = lootPool[Math.floor(Math.random() * lootPool.length)];
   addItem(picked);
-  gainXP(spawn.type.xp);
   const item = ITEMS[picked];
-  addLog(`${spawn.type.emoji} Collected ${spawn.type.label} → got ${item.icon} ${item.name}! (+${spawn.type.xp} XP)`, 'good');
-  showToast(`${spawn.type.emoji} Got ${item.name}!`);
+
+  let bonusText = '';
+  if (BUFFS.doubleDrop > 0) {
+    const bonusPick = lootPool[Math.floor(Math.random() * lootPool.length)];
+    addItem(bonusPick);
+    BUFFS.doubleDrop--;
+    bonusText = ` + bonus ${ITEMS[bonusPick].icon} ${ITEMS[bonusPick].name} (🎁 Double Drop)`;
+  }
+
+  gainXP(spawn.type.xp);
+  addLog(`${spawn.type.emoji} Collected ${spawn.type.label} → got ${item.icon} ${item.name}${bonusText}! (+${spawn.type.xp} XP)`, 'good');
+  showToast(`${spawn.type.emoji} Got ${item.name}!${bonusText ? ' 🎁×2' : ''}`);
 
   // Credit season "collect" quest counter
   seasonAddCounter('collect', 1);
@@ -1198,6 +1701,7 @@ function collectSpawn(spawnId) {
   updateInventoryUI();
   updateHUD();
   map.closePopup();
+  if (STATE.lat != null) updateNearbyItemsList(STATE.lat, STATE.lng);
 }
 
 // ── Spawn respawn timer (30 min) ─────────────────────────────────────────────
@@ -1251,6 +1755,57 @@ SPECIAL_LOCATIONS.forEach(loc => {
     .bindPopup(diceStationPopupHTML(station), { maxWidth: 220 });
   DICE_MARKERS[station.id] = diceMarker;
 });
+
+// ── Rural / standalone spawns — scattered across the whole continental US, ──
+// not tied to any city. This means there's something to find between cities
+// too, not just clustered around metro areas.
+function generateRuralSpawns() {
+  // Rough continental US bounding box
+  const LAT_MIN = 25.5, LAT_MAX = 48.5;
+  const LNG_MIN = -124.5, LNG_MAX = -67.5;
+  const COUNT = 220;
+
+  for (let i = 0; i < COUNT; i++) {
+    const r1 = mulberry32(7919 * i + 13);
+    const r2 = mulberry32(6121 * i + 29);
+    const r3 = mulberry32(4007 * i + 41);
+
+    const lat = LAT_MIN + r1 * (LAT_MAX - LAT_MIN);
+    const lng = LNG_MIN + r2 * (LNG_MAX - LNG_MIN);
+
+    // Skip points too close to any city (avoid double-spawning where city rings already cover it)
+    const tooClose = SPECIAL_LOCATIONS.some(loc => haversineKm(lat, lng, loc.lat, loc.lng) < SPAWN_OUTER_RADIUS_KM);
+    if (tooClose) continue;
+
+    const rarityRoll = r3;
+    let typeIdx;
+    if      (rarityRoll < 0.04) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_vault');
+    else if (rarityRoll < 0.08) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_jewel');
+    else if (rarityRoll < 0.16) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop');
+    else if (rarityRoll < 0.26) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'construction_bin');
+    else if (rarityRoll < 0.38) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_relic');
+    else if (rarityRoll < 0.48) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster_loading');
+    else if (rarityRoll < 0.62) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster_alley');
+    else if (rarityRoll < 0.76) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'recycling_bin');
+    else if (rarityRoll < 0.90) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_counter');
+    else                        typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster');
+    if (typeIdx < 0) typeIdx = 0;
+
+    const spawn = {
+      lat, lng,
+      type: SPAWN_TYPES[typeIdx],
+      cityId: 'rural',
+      collected: false,
+      id: `rural_spawn_${i}`,
+    };
+    ALL_SPAWNS.push(spawn);
+    const marker = L.marker([spawn.lat, spawn.lng], { icon: makeSpawnIcon(spawn) })
+      .addTo(map)
+      .bindPopup(spawnPopupHTML(spawn), { maxWidth: 200 });
+    SPAWN_MARKERS[spawn.id] = marker;
+  }
+}
+generateRuralSpawns();
 
 // =============================================
 //  GPS
@@ -1399,17 +1954,76 @@ function updateNearbyList(lat, lng) {
       </div>
     </div>
   `).join('');
+
+  updateNearbyDiceList(lat, lng);
+  updateNearbyItemsList(lat, lng);
+}
+
+function updateNearbyDiceList(lat, lng) {
+  const list = document.getElementById('nearby-dice-list');
+  if (!list) return;
+  if (!DICE_STATIONS.length) { list.innerHTML = `<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:10px;">No Dice Stations loaded yet.</div>`; return; }
+
+  const sorted = DICE_STATIONS
+    .map(s => ({ s, dist: haversineKm(lat, lng, s.lat, s.lng) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 5);
+
+  list.innerHTML = sorted.map(({ s, dist }) => {
+    const last = diceLastUsed[s.id] || 0;
+    const ready = (Date.now() - last) >= DICE_COOLDOWN_MS;
+    const distStr = dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
+    const statusBadge = ready
+      ? `<span style="color:var(--green);">Ready</span>`
+      : `<span style="color:var(--muted);">On cooldown</span>`;
+    return `
+      <div class="inv-item" style="margin-bottom:6px;cursor:pointer;" onclick="flyTo(${s.lat},${s.lng})">
+        <div class="ii-icon">🎲</div>
+        <div class="ii-info">
+          <div class="ii-name">Dice Station</div>
+          <div class="ii-qty">${distStr} away &nbsp;•&nbsp; ${statusBadge}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function updateNearbyItemsList(lat, lng) {
+  const list = document.getElementById('nearby-items-list');
+  if (!list) return;
+  const unclaimed = ALL_SPAWNS.filter(s => !s.collected);
+  if (!unclaimed.length) { list.innerHTML = `<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:10px;">No items loaded yet.</div>`; return; }
+
+  const sorted = unclaimed
+    .map(s => ({ s, dist: haversineKm(lat, lng, s.lat, s.lng) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 6);
+
+  const rarityColor = r => r === 'rare' ? '#ef5350' : r === 'uncommon' ? '#ffd54f' : '#64b5f6';
+
+  list.innerHTML = sorted.map(({ s, dist }) => {
+    const distStr = dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
+    return `
+      <div class="inv-item" style="margin-bottom:6px;cursor:pointer;" onclick="flyTo(${s.lat},${s.lng})">
+        <div class="ii-icon" style="color:${rarityColor(s.type.rarity)};">●</div>
+        <div class="ii-info">
+          <div class="ii-name">${s.type.label}</div>
+          <div class="ii-qty">${distStr} away &nbsp;•&nbsp; <span style="color:${rarityColor(s.type.rarity)};">${s.type.rarity}</span></div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function flyTo(lat, lng) {
-  map.flyTo([lat, lng], 12, { duration: 1.5 });
-  openTab('map');
+  map.flyTo([lat, lng], 13, { duration: 1.5 });
+  // On mobile, switch the bottom-nav view to the map so the user can see it.
+  const mapNavBtn = document.querySelector('.bnav-btn[data-tab="map"]');
+  if (mapNavBtn && window.innerWidth <= 640) mobileTab('map', mapNavBtn);
 }
 
 // =============================================
 //  CORE ACTIONS
 // =============================================
-const CD = 15000; // 15s cooldown per action
+const CD = 15000; // 15s cooldown per generic action
 
 function checkCooldown(key) {
   const now = Date.now();
@@ -1422,118 +2036,22 @@ function checkCooldown(key) {
   return true;
 }
 
-function checkEnergy(cost = 1) {
-  if (STATE.energy < cost) {
-    showToast('⚡ No energy! Rest or drink an Energy Drink.');
+// Special City Actions have their own longer, per-city cooldown so the
+// Season "trigger 12 special actions" quest requires visiting multiple cities
+// over time rather than spamming one location.
+const SPECIAL_ACTION_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+const specialActionLastUsed = {}; // cityId -> timestamp
+
+function checkSpecialCooldown(cityId) {
+  if (BUFFS.sprintReady) return true; // Sprint Ticket bypasses the wait entirely
+  const last = specialActionLastUsed[cityId] || 0;
+  const remaining = SPECIAL_ACTION_COOLDOWN_MS - (Date.now() - last);
+  if (remaining > 0) {
+    const m = Math.ceil(remaining / 60000);
+    showToast(`⏳ This city's special action is on cooldown — ${m} min left.`);
     return false;
   }
-  STATE.energy -= cost;
-  updateHUD();
   return true;
-}
-
-function doForage() {
-  if (!checkCooldown('forage')) return;
-  if (!checkEnergy(1)) return;
-  if (!STATE.lat) { showToast('📍 Enable GPS first!'); return; }
-
-  const loc = STATE.currentLocation;
-  const pool = loc ? (loc.dropBonus || ['herb']) : ['herb'];
-
-  // Apply luck/treasure map
-  let roll = Math.random();
-  if (BUFFS.luck > 0) { roll = Math.max(roll, Math.random()); BUFFS.luck--; }
-  if (BUFFS.treasureMap) { roll = 0.95; BUFFS.treasureMap = false; }
-
-  let found;
-  if (roll > 0.85) {
-    // Rare: gem or ancient_map
-    found = Math.random() > 0.5 ? 'gem' : 'ancient_map';
-  } else if (roll > 0.55) {
-    // Uncommon from pool
-    found = pool[Math.floor(Math.random() * pool.length)];
-  } else {
-    // Common
-    found = Math.random() > 0.5 ? 'herb' : 'crystal';
-  }
-
-  // Pack perk
-  if (STATE.inventory['sturdy_pack'] && Math.random() > 0.5) {
-    addItem(found);
-  }
-
-  addItem(found);
-  gainXP(15);
-  const item = ITEMS[found];
-  addLog(`🌿 Foraged → found ${item.icon} ${item.name}!`, 'good');
-  showToast(`${item.icon} Found ${item.name}!`);
-
-  // Magnet
-  if (BUFFS.magnet > 0) {
-    const b = pool[Math.floor(Math.random() * pool.length)];
-    addItem(b); BUFFS.magnet--;
-    addLog(`🧲 Magnet auto-collected ${ITEMS[b].icon} ${ITEMS[b].name}!`, 'info');
-  }
-
-  updateInventoryUI();
-}
-
-function doExploreArea() {
-  if (!checkCooldown('scout')) return;
-  if (!checkEnergy(1)) return;
-  if (!STATE.lat) { showToast('📍 Enable GPS first!'); return; }
-
-  // Scout reveals gold or XP
-  const roll = Math.random();
-  let xpGain = 20, goldGain = 0;
-  if (roll > 0.7) {
-    goldGain = Math.floor(Math.random() * 80) + 20;
-    addLog(`🔭 Scouted the area — found 🪙${goldGain} gold!`, 'good');
-    showToast(`🔭 Found 🪙${goldGain} gold!`);
-  } else if (roll > 0.4) {
-    xpGain = 35;
-    addLog(`🔭 Scouted — discovered a hidden path! +35 XP`, 'good');
-    showToast(`🔭 Hidden path! +35 XP`);
-  } else {
-    addLog(`🔭 Scouted the area — nothing unusual found.`, 'info');
-    showToast(`🔭 Nothing found this time.`);
-  }
-  STATE.gold += goldGain;
-  gainXP(xpGain);
-  updateHUD();
-}
-
-function doRest() {
-  if (!checkCooldown('rest')) return;
-  const restored = Math.min(3, STATE.maxEnergy - STATE.energy);
-  STATE.energy = Math.min(STATE.energy + 3, STATE.maxEnergy);
-  gainXP(5);
-  addLog(`🛏 Rested and recovered ${restored} energy.`, 'info');
-  showToast(`🛏 +${restored} ⚡ Energy`);
-  updateHUD();
-}
-
-function doCollect() {
-  if (!checkCooldown('collect')) return;
-  if (!checkEnergy(1)) return;
-  if (!STATE.lat) { showToast('📍 Enable GPS first!'); return; }
-
-  // Collect is rarer but better loot
-  const roll = Math.random();
-  if (roll > 0.6) {
-    const items = ['coin_bag', 'fossil', 'crystal'];
-    const picked = items[Math.floor(Math.random() * items.length)];
-    addItem(picked);
-    gainXP(25);
-    addLog(`💎 Collected ${ITEMS[picked].icon} ${ITEMS[picked].name}!`, 'good');
-    showToast(`💎 Collected ${ITEMS[picked].name}!`);
-  } else {
-    gainXP(10);
-    addLog(`💎 Nothing to collect here right now.`, 'info');
-    showToast('💎 Nothing found this time.');
-  }
-  updateInventoryUI();
-  updateHUD();
 }
 
 // =============================================
@@ -1541,8 +2059,15 @@ function doCollect() {
 // =============================================
 function doSpecialAction() {
   if (!STATE.currentLocation?.isSpecial) return;
-  if (!checkCooldown('special')) return;
-  if (!checkEnergy(2)) return;
+  const cityId = STATE.currentLocation.id;
+  if (!checkSpecialCooldown(cityId)) return;
+
+  const sprintWasUsed = BUFFS.sprintReady;
+  specialActionLastUsed[cityId] = Date.now();
+  if (sprintWasUsed) {
+    BUFFS.sprintReady = false;
+    addLog(`🏃 Sprint Ticket consumed — skipped this city's cooldown!`, 'good');
+  }
 
   const fn = STATE.currentLocation.specialAction?.fn;
   // Original cities
@@ -1637,11 +2162,12 @@ function actionCanyon() {
 }
 
 function actionYellowstone() {
-  STATE.energy = Math.min(STATE.energy + 5, STATE.maxEnergy);
+  const g = Math.floor(Math.random() * 100) + 60;
+  STATE.gold += g;
   addItem('lava_rock');
   gainXP(50);
-  addLog(`🌋 Geyser ritual complete! Restored 5 ⚡ energy + 🌋 Lava Rock!`, 'special');
-  showToast(`🌋 Energy restored by geyser!`);
+  addLog(`🌋 Geyser ritual complete! Earned 🪙${g} + 🌋 Lava Rock!`, 'special');
+  showToast(`🌋 Geyser eruption! +🪙${g}`);
 }
 
 function actionMiami() {
@@ -1770,42 +2296,133 @@ function actioncharleston()  { genericSpecial('⚓','Charleston','ancient_map','
 function actiongreenville()  { genericSpecial('🏔️','Greenville','crystal','coin_bag',42,42,`Mill dig! Found 💎 Crystal + 👝 Bag + 🪙42!`,`Upstate haul!`); }
 
 // =============================================
-//  ITEM USE
+//  TEAM FLAGS — PLACEMENT (Season 10 finale quest)
 // =============================================
+const PLACED_FLAGS = []; // { lat, lng, teamId, marker }
+
+function flagIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `
+      <svg width="22" height="30" viewBox="0 0 22 30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));">
+        <line x1="4" y1="2" x2="4" y2="28" stroke="#8b5a2b" stroke-width="2.5"/>
+        <path d="M4 3 L19 8 L4 13 Z" fill="${color}" stroke="#fff" stroke-width="1"/>
+      </svg>`,
+    iconSize: [22, 30],
+    iconAnchor: [4, 28],
+  });
+}
+
+function placeFlag(flagId) {
+  if (!STATE.inventory[flagId] || STATE.inventory[flagId] <= 0) return;
+  if (!SEASON.playerTeam) { showToast('🏳️ Join a team first!'); return; }
+  if (STATE.lat == null) { showToast('📍 Enable GPS first — flags are placed at your current location!'); return; }
+
+  const teamId = SEASON.playerTeam;
+  const team = TEAMS.find(t => t.id === teamId);
+
+  removeItem(flagId);
+
+  const marker = L.marker([STATE.lat, STATE.lng], { icon: flagIcon(team.color) })
+    .addTo(map)
+    .bindPopup(`<b>🚩 ${team.name} Flag</b><br><i style="font-size:.78rem;">Planted with pride!</i>`, { maxWidth: 180 });
+
+  PLACED_FLAGS.push({ lat: STATE.lat, lng: STATE.lng, teamId, marker });
+
+  // Credit the season "flags" quest counter for this team
+  seasonAddCounter('flags', 1);
+
+  addLog(`🚩 Planted a ${team.name} flag! (${SEASON.teams[teamId].counters.flags || 0} placed this season)`, 'special');
+  showToast(`🚩 Flag planted!`);
+  updateInventoryUI();
+}
 function useItem(id) {
   if (!STATE.inventory[id] || STATE.inventory[id] <= 0) return;
 
   if (id === 'luck_ticket') {
     BUFFS.luck += 3;
     removeItem(id);
-    addLog(`🍀 Luck Ticket used — boosted luck for 3 forages!`, 'good');
-    showToast(`🍀 Lucky! +3 lucky forages`);
-  } else if (id === 'energy_drink') {
-    STATE.energy = Math.min(STATE.energy + 5, STATE.maxEnergy);
-    removeItem(id);
-    addLog(`⚡ Energy Drink consumed — +5 energy!`, 'good');
-    showToast(`⚡ +5 Energy!`);
-  } else if (id === 'treasure_map') {
-    BUFFS.treasureMap = true;
-    removeItem(id);
-    addLog(`🗺️ Treasure Map activated — next forage guaranteed rare!`, 'good');
-    showToast(`🗺️ Next forage = rare item!`);
+    addLog(`🍀 Luck Ticket used — better odds at Dice Stations for your next 3 rolls!`, 'good');
+    showToast(`🍀 Lucky! +3 lucky dice rolls`);
   } else if (id === 'xp_boost') {
     BUFFS.xpBoost += 5;
     removeItem(id);
     addLog(`⭐ XP Boost active — double XP for 5 actions!`, 'good');
     showToast(`⭐ 2× XP for 5 actions!`);
-  } else if (id === 'magnet') {
-    BUFFS.magnet += 3;
+  } else if (id === 'reach_ticket') {
+    BUFFS.reachUntil = Date.now() + 5 * 60 * 1000;
     removeItem(id);
-    addLog(`🧲 Magnet activated — auto-collect next 3 items!`, 'good');
-    showToast(`🧲 Auto-collect activated!`);
+    addLog(`📡 Reach Ticket activated — interact with anything within 5 km for the next 5 minutes!`, 'good');
+    showToast(`📡 5 km reach for 5 minutes!`);
+  } else if (id === 'double_drop_ticket') {
+    BUFFS.doubleDrop += 3;
+    removeItem(id);
+    addLog(`🎁 Double Drop Ticket used — your next 3 field collects give 2 items each!`, 'good');
+    showToast(`🎁 Double drops for 3 collects!`);
+  } else if (id === 'cooldown_skip_ticket') {
+    const used = trySkipNearestDiceCooldown();
+    if (used) removeItem(id);
+  } else if (id === 'sprint_ticket') {
+    BUFFS.sprintReady = true;
+    removeItem(id);
+    addLog(`🏃 Sprint Ticket activated — your next Special City Action skips its cooldown!`, 'good');
+    showToast(`🏃 Next special action: no cooldown!`);
+  } else if (id === 'insurance_ticket') {
+    BUFFS.insuranceReady = true;
+    removeItem(id);
+    addLog(`🛡️ Vault Insurance Ticket activated — your next vault deposit counts double toward your quest!`, 'good');
+    showToast(`🛡️ Next deposit counts 2×!`);
+  } else if (id === 'scanner_ticket') {
+    BUFFS.scannerUntil = Date.now() + 10 * 60 * 1000;
+    removeItem(id);
+    highlightNearestSpawn();
+    addLog(`📶 Scanner Ticket activated — closest unclaimed find highlighted for 10 minutes!`, 'good');
+    showToast(`📶 Nearest find highlighted!`);
   } else {
     showToast(`This item can't be used directly.`);
   }
 
   updateInventoryUI();
   updateHUD();
+}
+
+// Cooldown Skip Ticket — resets the nearest station within reach; if none in reach, resets the closest one overall
+function trySkipNearestDiceCooldown() {
+  if (!DICE_STATIONS.length) { showToast('No Dice Stations found.'); return false; }
+  if (STATE.lat == null) { showToast('📍 Enable GPS first!'); return false; }
+
+  const onCooldown = DICE_STATIONS
+    .map(s => ({ s, dist: haversineKm(STATE.lat, STATE.lng, s.lat, s.lng), remaining: DICE_COOLDOWN_MS - (Date.now() - (diceLastUsed[s.id] || 0)) }))
+    .filter(x => x.remaining > 0)
+    .sort((a, b) => a.dist - b.dist);
+
+  if (!onCooldown.length) { showToast('No Dice Stations are currently on cooldown!'); return false; }
+
+  const target = onCooldown[0];
+  diceLastUsed[target.s.id] = 0;
+  const marker = DICE_MARKERS[target.s.id];
+  if (marker) marker.getPopup().setContent(diceStationPopupHTML(target.s));
+  addLog(`⏩ Cooldown Skip Ticket used — reset the Dice Station ${target.dist.toFixed(1)} km away!`, 'good');
+  showToast(`⏩ Dice Station cooldown cleared!`);
+  return true;
+}
+
+// Scanner Ticket — finds & flies to + flashes the closest unclaimed spawn/station
+function highlightNearestSpawn() {
+  if (STATE.lat == null) { showToast('📍 Enable GPS first!'); return; }
+  const candidates = [
+    ...ALL_SPAWNS.filter(s => !s.collected).map(s => ({ lat: s.lat, lng: s.lng, marker: SPAWN_MARKERS[s.id] })),
+    ...DICE_STATIONS.filter(s => (Date.now() - (diceLastUsed[s.id] || 0)) >= DICE_COOLDOWN_MS).map(s => ({ lat: s.lat, lng: s.lng, marker: DICE_MARKERS[s.id] })),
+  ];
+  if (!candidates.length) { showToast('Nothing nearby to scan for!'); return; }
+  candidates.forEach(c => c.dist = haversineKm(STATE.lat, STATE.lng, c.lat, c.lng));
+  candidates.sort((a, b) => a.dist - b.dist);
+  const nearest = candidates[0];
+  showToast(`📶 Closest find: ${nearest.dist.toFixed(1)} km away`);
+  if (nearest.marker) {
+    map.flyTo([nearest.lat, nearest.lng], 14, { duration: 1.2 });
+    nearest.marker.openPopup();
+  }
 }
 
 function sellItem(id) {
@@ -1848,6 +2465,46 @@ function renderShop() {
         <button class="buy-btn" onclick="buyItem('${si.id}', ${si.price})">Buy</button>
       </div>`;
   }).join('');
+
+  renderFlagShop();
+}
+
+function renderFlagShop() {
+  const wrap = document.getElementById('shop-flags');
+  if (!wrap) return;
+
+  if (!SEASON.playerTeam) {
+    wrap.innerHTML = `<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:14px;">Join a team in the Seasons tab to unlock Team Flags.</div>`;
+    return;
+  }
+
+  const team = TEAMS.find(t => t.id === SEASON.playerTeam);
+  const flagId = FLAG_BY_TEAM[SEASON.playerTeam];
+  const flagItem = ITEMS[flagId];
+
+  wrap.innerHTML = `
+    <div class="shop-item">
+      <div class="si-icon" style="color:${team.color};">🚩</div>
+      <div class="si-info">
+        <div class="si-name">${flagItem.name}</div>
+        <div class="si-desc">${flagItem.desc}</div>
+        <div class="si-price">🪙 ${FLAG_PRICE}</div>
+      </div>
+      <button class="buy-btn" style="background:${team.color};color:#000;" onclick="buyFlag()">Buy</button>
+    </div>`;
+}
+
+function buyFlag() {
+  if (!SEASON.playerTeam) { showToast('🏳️ Join a team first!'); return; }
+  if (STATE.gold < FLAG_PRICE) { showToast('🪙 Not enough gold!'); return; }
+  STATE.gold -= FLAG_PRICE;
+  const flagId = FLAG_BY_TEAM[SEASON.playerTeam];
+  addItem(flagId);
+  const team = TEAMS.find(t => t.id === SEASON.playerTeam);
+  addLog(`🚩 Bought a ${team.name} Flag for 🪙${FLAG_PRICE}!`, 'info');
+  showToast(`🚩 Flag purchased!`);
+  updateInventoryUI();
+  updateHUD();
 }
 
 // =============================================
@@ -1865,13 +2522,17 @@ function updateInventoryUI() {
   const list = document.getElementById('inv-list');
   const entries = Object.entries(STATE.inventory);
   if (!entries.length) {
-    list.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:20px;">Your bag is empty.<br>Start foraging!</div>`;
+    list.innerHTML = `<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:20px;">Your bag is empty.<br>Go collect some items on the map!</div>`;
     return;
   }
   list.innerHTML = entries.map(([id, qty]) => {
     const item = ITEMS[id];
     if (!item) return '';
+    const isFlag = id.startsWith('flag_');
     const useBtn = item.usable ? `<button class="use-btn" onclick="useItem('${id}')">Use</button>` : '';
+    const actionBtn = isFlag
+      ? `<button class="buy-btn" style="background:var(--gold);color:#000;" onclick="placeFlag('${id}')">📍 Place Flag</button>`
+      : `<button class="buy-btn" style="background:var(--accent2);" onclick="sellItem('${id}')">Sell 🪙${item.sellPrice}</button>`;
     return `
       <div class="inv-item">
         <div class="ii-icon">${item.icon}</div>
@@ -1880,7 +2541,7 @@ function updateInventoryUI() {
           <div class="ii-qty">${item.desc}</div>
         </div>
         ${useBtn}
-        <button class="buy-btn" style="background:var(--accent2);" onclick="sellItem('${id}')">Sell 🪙${item.sellPrice}</button>
+        ${actionBtn}
       </div>`;
   }).join('');
 }
@@ -1898,8 +2559,6 @@ function gainXP(base) {
   while (STATE.xp >= xpForLevel(STATE.level)) {
     STATE.xp -= xpForLevel(STATE.level);
     STATE.level++;
-    STATE.maxEnergy = 10 + Math.floor(STATE.level * 0.5);
-    STATE.energy = STATE.maxEnergy;
     addLog(`🎉 LEVEL UP! You are now Level ${STATE.level}!`, 'special');
     showToast(`🎉 Level Up! You're now Lv ${STATE.level}!`);
   }
@@ -1911,7 +2570,6 @@ function gainXP(base) {
 // =============================================
 function updateHUD() {
   document.getElementById('gold-val').textContent = STATE.gold;
-  document.getElementById('energy-val').textContent = STATE.energy;
   document.getElementById('xp-val').textContent = STATE.xp;
   document.getElementById('level-badge').textContent = `Lv ${STATE.level}`;
   const pct = (STATE.xp / xpForLevel(STATE.level)) * 100;
@@ -2187,25 +2845,20 @@ function renderQuestDetail(teamId, sectionNum) {
           labelText = `${r.have} / ${r.need} field items collected`;
         } else if (key === 'special') {
           labelText = `${r.have} / ${r.need} Special City Actions triggered`;
+        } else if (key === 'flags') {
+          labelText = `${r.have} / ${r.need} flags placed`;
         }
         return `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
           <div class="qd-meta">${labelText}</div>${btn}`;
       }).join('');
       progressHTML = rows;
       depositHTML = ''; // buttons already inlined per-row above
-    } else if (section.type === 'vault_final') {
-      const g = teamState.vault.gold;
-      const items = section.itemTarget;
-      const itemRows = Object.entries(items).map(([id, amt]) => {
-        const have = teamState.vault.items[id] || 0;
-        const item = ITEMS[id];
-        return `<div class="qd-meta">${item.icon} ${have} / ${amt} ${item.name}</div>`;
-      }).join('');
-      progressHTML = `<div class="qd-meta">🪙 ${g} / ${section.goldTarget} Gold</div>${itemRows}`;
-      depositHTML = `
-        <button class="qd-deposit-btn" style="background:${team.color};" onclick="promptDeposit('gold', 200)">Deposit Gold</button>
-        ${Object.keys(items).map(id => `<button class="qd-deposit-btn" style="background:${team.color};margin-left:4px;" onclick="promptDeposit('${id}', 1)">Deposit ${ITEMS[id].name}</button>`).join('')}
-      `;
+    } else if (section.type === 'flags') {
+      const have = teamState.counters.flags;
+      const pct = Math.min(100, (have / section.target) * 100);
+      progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
+        <div class="qd-meta">${have} / ${section.target} 🚩 flags planted across America</div>
+        <div class="qd-meta" style="margin-top:4px;">Buy flags in the Shop tab (🪙${FLAG_PRICE} each), then place them from your Bag.</div>`;
     }
   }
 
@@ -2269,16 +2922,6 @@ function mobileTab(name, btn) {
 }
 
 // =============================================
-//  ENERGY REGEN (1 per 5 min)
-// =============================================
-setInterval(() => {
-  if (STATE.energy < STATE.maxEnergy) {
-    STATE.energy++;
-    updateHUD();
-  }
-}, 5 * 60 * 1000);
-
-// =============================================
 //  INIT
 // =============================================
 renderShop();
@@ -2288,9 +2931,7 @@ renderSeasonsTab();
 addLog(`🌍 Welcome to GeoQuest! Press 📍 to find your location and begin your adventure.`, 'info');
 addLog(`⚔ NEW: Check the Seasons tab to join a team and race the X to victory! Use Dice Stations in any city to help your team.`, 'special');
 addLog(`💡 Tip: Visit special cities like Las Vegas or NYC for unique abilities and bonuses!`, 'info');
-
-// Auto-locate on load
-setTimeout(locatePlayer, 800);
+// GPS lookup now happens once the player starts a game from the main menu (see startSinglePlayer).
 </script>
 </body>
 </html>
