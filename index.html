@@ -459,6 +459,78 @@
   #howto-content p { font-size: .85rem; color: var(--text); line-height: 1.55; }
   #howto-card .menu-btn { width: 100%; margin-top: 20px; }
 
+  /* === DICE GAME MODAL === */
+  #dice-modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 5200;
+    background: rgba(0,0,0,.78);
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  #dice-modal-overlay.active { display: flex; }
+  #dice-modal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px 24px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  #dice-modal-card h2 { margin-bottom: 4px; }
+  #dice-modal-sub { color: var(--muted); font-size: .82rem; margin-bottom: 16px; }
+
+  #dice-target-row {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: .85rem; font-weight: 600; margin-bottom: 14px;
+  }
+  #dice-target-numbers { display: flex; gap: 6px; }
+  .dice-target-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 6px;
+    background: var(--gold); color: #000; font-weight: 800; font-size: .85rem;
+  }
+
+  #dice-die-wrap { display: flex; justify-content: center; margin: 12px 0 16px; }
+  #dice-die-face {
+    width: 80px; height: 80px;
+    background: #fff; color: #1a1a1a;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem; font-weight: 800;
+    box-shadow: 0 6px 18px rgba(0,0,0,.4);
+    transition: transform .15s;
+  }
+  #dice-die-face.rolling { animation: dice-shake .5s ease-in-out infinite; }
+  @keyframes dice-shake {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(-8deg) scale(1.05); }
+    75% { transform: rotate(8deg) scale(1.05); }
+  }
+  #dice-die-face.win { background: var(--green); color: #fff; }
+  #dice-die-face.lose { background: var(--accent2); color: #fff; }
+
+  #dice-pot-row {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: .9rem; font-weight: 700; margin-bottom: 10px;
+  }
+  #dice-pot-value { color: var(--gold); }
+
+  #dice-modal-result {
+    min-height: 22px;
+    font-size: .85rem; font-weight: 600;
+    margin-bottom: 10px;
+  }
+  #dice-modal-result.good { color: var(--green); }
+  #dice-modal-result.bad { color: var(--accent2); }
+
+  #dice-modal-buttons { display: flex; flex-direction: column; gap: 8px; }
+  #dice-modal-buttons .menu-btn { padding: 12px; }
+  #dice-double-row { display: flex; gap: 8px; }
+  #dice-double-row .menu-btn { flex: 1; }
+  #dice-modal-close { margin-top: 14px; }
+
   /* === GAME WRAPPER (hidden behind menu until Single Player starts) === */
   #game-root { display: none; }
   #game-root.active { display: flex; flex-direction: column; flex: 1; height: 100%; min-height: 0; }
@@ -677,6 +749,37 @@
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- DICE GAME MODAL -->
+<div id="dice-modal-overlay">
+  <div id="dice-modal-card">
+    <h2>🎲 Dice Station</h2>
+    <p id="dice-modal-sub">Roll the die and try to hit your number!</p>
+
+    <div id="dice-target-row">
+      <span id="dice-target-label">Winning number(s):</span>
+      <span id="dice-target-numbers"></span>
+    </div>
+
+    <div id="dice-die-wrap">
+      <div id="dice-die-face">?</div>
+    </div>
+
+    <div id="dice-pot-row">
+      <span>Current pot:</span>
+      <span id="dice-pot-value">🪙 0</span>
+    </div>
+
+    <div id="dice-modal-result"></div>
+
+    <div id="dice-modal-buttons">
+      <button class="menu-btn primary" id="dice-roll-btn" onclick="diceModalRoll()">🎲 Roll the Die</button>
+    </div>
+
+    <button class="menu-btn back" id="dice-modal-close" onclick="closeDiceModal()">Close</button>
+  </div>
+</div>
+
 
 </div><!-- /#game-root -->
 
@@ -1003,6 +1106,7 @@ function startNewSeason() {
   initSeasonTeams();
   addLog(`🆕 Season ${SEASON.number} has begun! Pick your team in the Seasons tab.`, 'info');
   renderSeasonsTab();
+  refreshPlayerMarkerColor();
 }
 
 function joinTeam(teamId) {
@@ -1011,6 +1115,7 @@ function joinTeam(teamId) {
   addLog(`🏳️ You joined the ${TEAMS.find(t=>t.id===teamId).name}!`, 'special');
   showToast(`🏳️ Joined ${TEAMS.find(t=>t.id===teamId).name}!`);
   renderSeasonsTab();
+  refreshPlayerMarkerColor();
 }
 
 // =============================================
@@ -1077,6 +1182,7 @@ function startSinglePlayer(teamId) {
   initBots(otherTeams.map(t => t.id));
 
   renderSeasonsTab();
+  refreshPlayerMarkerColor();
   showToast(`🎮 Single Player started! ${otherTeams.length} bot${otherTeams.length === 1 ? '' : 's'} are playing the other team${otherTeams.length === 1 ? '' : 's'}.`);
 
   // Kick off GPS lookup now that the game is actually visible
@@ -1410,57 +1516,183 @@ function diceStationPopupHTML(station) {
   const inRange = dist <= radius;
   const distStr = dist === Infinity ? 'Unknown' : dist < 1 ? `${Math.round(dist*1000)} m` : `${dist.toFixed(1)} km`;
 
-  return `<b>🎲 Dice Station</b><br><i style="font-size:.78rem;">Roll for gold and XP. Luck Tickets improve your odds. Counts toward Season dice quests!</i><br>
+  return `<b>🎲 Dice Station</b><br><i style="font-size:.78rem;">Roll to hit your number and win gold! Luck Tickets give you 3 numbers instead of 1. Counts toward Season dice quests!</i><br>
     <small style="color:#aaa;">📍 ${distStr} away${radius > COLLECT_RADIUS_KM ? ' (📡 Reach active)' : ''}</small><br>
-    <button class="dice-popup-btn" onclick="useDiceStation('${station.id}')"
+    <button class="dice-popup-btn" onclick="openDiceModal('${station.id}')"
       style="background:${inRange ? '#a371f7' : '#555'};color:${inRange ? '#fff' : '#aaa'};cursor:${inRange ? 'pointer' : 'not-allowed'};" ${inRange ? '' : 'disabled'}>
-      ${inRange ? '🎲 Roll the Dice' : `🔒 Too far (${distStr})`}
+      ${inRange ? '🎲 Play Dice Game' : `🔒 Too far (${distStr})`}
     </button>`;
 }
 
-function useDiceStation(stationId) {
+// =============================================
+//  DICE GAME MODAL — interactive roll / double-or-nothing
+// =============================================
+const DICE_BASE_POT = 100; // starting stake when a dice game begins
+const DICE_BASE_XP = 25;   // XP awarded on a successful "take winnings"
+
+// Live state for whichever dice game is currently open (null when closed)
+let diceGame = null; // { stationId, station, targets, pot, rolling }
+
+function rollTargets() {
+  // Luck Ticket: consume one charge to get 3 distinct winning numbers instead of 1
+  if (BUFFS.luck > 0) {
+    BUFFS.luck--;
+    const nums = new Set();
+    while (nums.size < 3) nums.add(1 + Math.floor(Math.random() * 6));
+    return { numbers: [...nums].sort((a,b)=>a-b), luckUsed: true };
+  }
+  return { numbers: [1 + Math.floor(Math.random() * 6)], luckUsed: false };
+}
+
+function openDiceModal(stationId) {
   const station = DICE_STATIONS.find(s => s.id === stationId);
   if (!station) return;
 
-  const last = diceLastUsed[stationId] || 0;
-  if (Date.now() - last < DICE_COOLDOWN_MS) { showToast('🎲 Station is on cooldown!'); return; }
-
+  if (Date.now() - (diceLastUsed[stationId] || 0) < DICE_COOLDOWN_MS) { showToast('🎲 Station is on cooldown!'); return; }
   const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, station.lat, station.lng) : Infinity;
   if (dist > effectiveRadiusKm()) { showToast('🔒 Too far from the Dice Station!'); return; }
 
   consumeSuperReachIfUsed(dist);
 
+  map.closePopup();
+
+  const { numbers, luckUsed } = rollTargets();
+  diceGame = {
+    stationId,
+    station,
+    distAtOpen: dist,
+    targets: numbers,
+    pot: DICE_BASE_POT,
+    rolling: false,
+    sawSix: false,
+    luckUsedThisGame: luckUsed,
+  };
+
+  renderDiceModal();
+  document.getElementById('dice-modal-overlay').classList.add('active');
+}
+
+function closeDiceModal() {
+  document.getElementById('dice-modal-overlay').classList.remove('active');
+  diceGame = null;
+}
+
+function renderDiceModal() {
+  if (!diceGame) return;
+  const sub = document.getElementById('dice-modal-sub');
+  sub.textContent = diceGame.luckUsedThisGame
+    ? `🍀 Luck Ticket active — hit any of your 3 numbers to win!`
+    : `Hit your number to win the pot!`;
+
+  document.getElementById('dice-target-numbers').innerHTML = diceGame.targets
+    .map(n => `<span class="dice-target-chip">${n}</span>`).join('');
+
+  document.getElementById('dice-pot-value').textContent = `🪙 ${diceGame.pot}`;
+
+  const face = document.getElementById('dice-die-face');
+  face.className = '';
+  face.textContent = '?';
+
+  document.getElementById('dice-modal-result').textContent = '';
+  document.getElementById('dice-modal-result').className = '';
+
+  document.getElementById('dice-modal-buttons').innerHTML = `
+    <button class="menu-btn primary" id="dice-roll-btn" onclick="diceModalRoll()">🎲 Roll the Die</button>`;
+}
+
+function diceModalRoll() {
+  if (!diceGame || diceGame.rolling) return;
+  diceGame.rolling = true;
+
+  const face = document.getElementById('dice-die-face');
+  const resultEl = document.getElementById('dice-modal-result');
+  document.getElementById('dice-modal-buttons').innerHTML =
+    `<button class="menu-btn primary" disabled style="opacity:.5;">🎲 Rolling…</button>`;
+
+  face.className = 'rolling';
+  face.textContent = '🎲';
+  resultEl.textContent = '';
+  resultEl.className = '';
+
+  setTimeout(() => {
+    const roll = 1 + Math.floor(Math.random() * 6);
+    if (roll === 6) diceGame.sawSix = true;
+    const won = diceGame.targets.includes(roll);
+
+    face.className = won ? 'win' : 'lose';
+    face.textContent = roll;
+
+    if (won) {
+      resultEl.textContent = `🎉 You rolled ${roll} — a winner!`;
+      resultEl.className = 'good';
+      document.getElementById('dice-modal-buttons').innerHTML = `
+        <button class="menu-btn primary" style="background:var(--green);" onclick="diceModalTakeWinnings()">💰 Take Winnings (🪙${diceGame.pot})</button>
+        <div id="dice-double-row">
+          <button class="menu-btn" style="background:var(--gold);color:#000;" onclick="diceModalDoubleOrNothing()">🎲 Double or Nothing</button>
+        </div>`;
+    } else {
+      resultEl.textContent = `💨 You rolled ${roll} — no match. Pot lost.`;
+      resultEl.className = 'bad';
+      finishDiceGame(false);
+      document.getElementById('dice-modal-buttons').innerHTML = `
+        <button class="menu-btn primary" onclick="closeDiceModal()">Close</button>`;
+    }
+    diceGame.rolling = false;
+  }, 700);
+}
+
+function diceModalTakeWinnings() {
+  if (!diceGame) return;
+  finishDiceGame(true);
+  document.getElementById('dice-modal-result').textContent = `💰 Took 🪙${diceGame ? diceGame.pot : 0} and walked away!`;
+  document.getElementById('dice-modal-result').className = 'good';
+  document.getElementById('dice-modal-buttons').innerHTML = `
+    <button class="menu-btn primary" onclick="closeDiceModal()">Close</button>`;
+}
+
+function diceModalDoubleOrNothing() {
+  if (!diceGame) return;
+  diceGame.pot *= 2;
+  // Fresh targets for the next roll — luck only gives 3 numbers if a NEW Luck Ticket charge is available
+  const { numbers, luckUsed } = rollTargets();
+  diceGame.targets = numbers;
+  diceGame.luckUsedThisGame = luckUsed;
+  renderDiceModal();
+}
+
+// Called once when a dice game session ends, either by taking winnings or
+// losing a roll. Awards/removes gold, credits XP and the season dice quest,
+// and puts the station on cooldown.
+function finishDiceGame(won) {
+  if (!diceGame) return;
+  const { stationId, station, pot, sawSix } = diceGame;
+
   diceLastUsed[stationId] = Date.now();
 
-  // Roll outcome — Luck Ticket grants "advantage": roll twice, keep the higher result
-  let roll = Math.floor(Math.random() * 6) + 1;
-  let luckUsed = false;
-  if (BUFFS.luck > 0) {
-    const secondRoll = Math.floor(Math.random() * 6) + 1;
-    roll = Math.max(roll, secondRoll);
-    BUFFS.luck--;
-    luckUsed = true;
+  if (won) {
+    STATE.gold += pot;
+    gainXP(DICE_BASE_XP);
+    addLog(`🎲 Won 🪙${pot} at the Dice Station!`, 'good');
+    showToast(`🎲 Won 🪙${pot}!`);
+  } else {
+    addLog(`🎲 Lost the pot (🪙${pot}) at the Dice Station.`, 'bad');
+    showToast(`🎲 Lost the pot...`);
   }
 
-  let goldWin = roll * 30;
-  let xpWin = roll * 8;
-  STATE.gold += goldWin;
-  gainXP(xpWin);
-  addLog(`🎲 Rolled a ${roll} at the Dice Station${luckUsed ? ' (🍀 Luck Ticket boosted this roll)' : ''}! +🪙${goldWin} +${xpWin} XP`, 'good');
-  showToast(`🎲 Rolled ${roll}!${luckUsed ? ' 🍀' : ''} +🪙${goldWin}`);
-
-  if (roll === 6) {
+  if (sawSix) {
     addItem('gem');
-    addLog(`🎲 Lucky 6! Bonus 💍 Gem awarded!`, 'special');
+    addLog(`🎲 Rolled a 6 this game — bonus 💍 Gem awarded!`, 'special');
   }
 
-  // Credit season quest counter
+  // Credit season quest counter regardless of win/loss — using the station still counts
   seasonAddCounter('dice', 1);
 
   updateHUD(); updateInventoryUI();
   const marker = DICE_MARKERS[stationId];
   if (marker) marker.getPopup().setContent(diceStationPopupHTML(station));
   if (STATE.lat != null) updateNearbyDiceList(STATE.lat, STATE.lng);
+
+  diceGame = null;
 }
 
 // =============================================
@@ -1695,7 +1927,26 @@ window.addEventListener('resize', () => map.invalidateSize());
 let playerMarker = null;
 let playerCircle = null;
 
-function makePlayerIcon() {
+const DEFAULT_PLAYER_COLOR = '#4285F4'; // Google-Maps-style blue, used until the player joins a team
+
+// Returns the player's current team color, or the default blue if no team joined yet.
+function getPlayerMarkerColor() {
+  if (SEASON.playerTeam) {
+    const team = TEAMS.find(t => t.id === SEASON.playerTeam);
+    if (team) return team.color;
+  }
+  return DEFAULT_PLAYER_COLOR;
+}
+
+function makePlayerIcon(color) {
+  const c = color || DEFAULT_PLAYER_COLOR;
+  // Convert hex color to an rgba() for the soft pulse ring (reuses the same hex -> rgb logic everywhere a translucent version is needed)
+  const hexToRgb = (hex) => {
+    const h = hex.replace('#', '');
+    const bigint = parseInt(h, 16);
+    return `${(bigint >> 16) & 255},${(bigint >> 8) & 255},${bigint & 255}`;
+  };
+  const rgb = hexToRgb(c);
   return L.divIcon({
     className: '',
     html: `
@@ -1710,7 +1961,7 @@ function makePlayerIcon() {
         <div style="
           position:absolute;top:50%;left:50%;
           width:24px;height:24px;border-radius:50%;
-          background:rgba(66,133,244,0.25);
+          background:rgba(${rgb},0.25);
           animation:gps-pulse 2s ease-out infinite;
         "></div>
         <!-- White shadow ring -->
@@ -1721,12 +1972,12 @@ function makePlayerIcon() {
           background:#fff;
           box-shadow:0 2px 8px rgba(0,0,0,0.3);
         "></div>
-        <!-- Blue center dot -->
+        <!-- Team-colored center dot -->
         <div style="
           position:absolute;top:50%;left:50%;
           transform:translate(-50%,-50%);
           width:13px;height:13px;border-radius:50%;
-          background:#4285F4;
+          background:${c};
         "></div>
       </div>
     `,
@@ -1761,6 +2012,13 @@ function mulberry32(seed) {
   t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
+
+// A genuinely random seed picked fresh every time the page loads (i.e. every
+// time you start the game). Mixed into every map-generation seed below so
+// the layout of dumpsters, pawn shops, Dice Stations, and Workbenches is
+// different every session — sometimes clustered near you, sometimes spread
+// across the whole country, purely by chance each time.
+const SESSION_SEED = Math.floor(Math.random() * 2147483647);
 
 // =============================================
 //  US LAND BOUNDARY (for bot movement — bots can't walk into water)
@@ -2009,9 +2267,9 @@ function generateNationwideSpawns() {
   let i = 0;
   while (placed < COUNT && i < COUNT * 6) { // safety cap on attempts
     i++;
-    const r1 = mulberry32(7919 * i + 13);
-    const r2 = mulberry32(6121 * i + 29);
-    const r3 = mulberry32(4007 * i + 41);
+    const r1 = mulberry32(7919 * i + 13 + SESSION_SEED);
+    const r2 = mulberry32(6121 * i + 29 + SESSION_SEED);
+    const r3 = mulberry32(4007 * i + 41 + SESSION_SEED);
 
     const lat = LAT_MIN + r1 * (LAT_MAX - LAT_MIN);
     const lng = LNG_MIN + r2 * (LNG_MAX - LNG_MIN);
@@ -2051,8 +2309,8 @@ function generateNationwideDiceStations() {
   let i = 0;
   while (placed < COUNT && i < COUNT * 8) {
     i++;
-    const r1 = mulberry32(9001 * i + 5);
-    const r2 = mulberry32(3331 * i + 17);
+    const r1 = mulberry32(9001 * i + 5 + SESSION_SEED);
+    const r2 = mulberry32(3331 * i + 17 + SESSION_SEED);
 
     const lat = LAT_MIN + r1 * (LAT_MAX - LAT_MIN);
     const lng = LNG_MIN + r2 * (LNG_MAX - LNG_MIN);
@@ -2079,8 +2337,8 @@ function generateNationwideWorkbenches() {
   let i = 0;
   while (placed < COUNT && i < COUNT * 8) {
     i++;
-    const r1 = mulberry32(5519 * i + 71);
-    const r2 = mulberry32(8821 * i + 113);
+    const r1 = mulberry32(5519 * i + 71 + SESSION_SEED);
+    const r2 = mulberry32(8821 * i + 113 + SESSION_SEED);
 
     const lat = LAT_MIN + r1 * (LAT_MAX - LAT_MIN);
     const lng = LNG_MIN + r2 * (LNG_MAX - LNG_MIN);
@@ -2165,16 +2423,28 @@ function locatePlayer() {
 function updatePlayerOnMap(lat, lng, accuracy) {
   if (playerMarker) { playerMarker.remove(); }
   if (playerCircle) { playerCircle.remove(); }
-  playerMarker = L.marker([lat, lng], { icon: makePlayerIcon() }).addTo(map).bindPopup('You are here!');
+  const color = getPlayerMarkerColor();
+  playerMarker = L.marker([lat, lng], { icon: makePlayerIcon(color) }).addTo(map).bindPopup('You are here!');
   playerCircle = L.circle([lat, lng], {
     radius: accuracy,
-    color: '#4285F4',
-    fillColor: '#4285F4',
+    color: color,
+    fillColor: color,
     fillOpacity: 0.12,
     weight: 1.5,
     opacity: 0.4,
   }).addTo(map);
   map.setView([lat, lng], 13);
+}
+
+// Refreshes the player's marker/circle color in place (no need to re-fetch
+// GPS) — called whenever the player's team changes after location is already known.
+function refreshPlayerMarkerColor() {
+  if (!playerMarker || STATE.lat == null) return;
+  const color = getPlayerMarkerColor();
+  playerMarker.setIcon(makePlayerIcon(color));
+  if (playerCircle) {
+    playerCircle.setStyle({ color: color, fillColor: color });
+  }
 }
 
 // =============================================
@@ -2372,9 +2642,10 @@ function updatePlayersAndBotsList(lat, lng) {
   // The player themself, if GPS is active
   if (STATE.lat != null) {
     const teamName = SEASON.playerTeam ? TEAMS.find(t => t.id === SEASON.playerTeam)?.name : null;
+    const myColor = getPlayerMarkerColor();
     rows.push(`
       <div class="inv-item" style="margin-bottom:6px;cursor:pointer;" onclick="flyTo(${STATE.lat},${STATE.lng})">
-        <div class="ii-icon" style="color:#4285F4;">●</div>
+        <div class="ii-icon" style="color:${myColor};">●</div>
         <div class="ii-info">
           <div class="ii-name">You${teamName ? ` (${teamName})` : ''}</div>
           <div class="ii-qty">Your current location</div>
