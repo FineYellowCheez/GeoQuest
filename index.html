@@ -393,6 +393,39 @@
   #menu-sp-setup { margin-top: 22px; text-align: left; }
   #menu-sp-setup h2 { font-size: 1.1rem; margin-bottom: 8px; text-align: center; }
   .menu-hint { color: var(--muted); font-size: .82rem; line-height: 1.5; margin-bottom: 16px; text-align: center; }
+  #menu-slider-wrap { margin-bottom: 18px; }
+  #menu-slider-label { display: block; font-size: .85rem; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  #menu-slider-value { color: var(--accent); }
+  #menu-team-count-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  #menu-team-count-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+  }
+  #menu-team-count-slider::-moz-range-thumb {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+  }
+  #menu-slider-ticks { display: flex; justify-content: space-between; font-size: .7rem; color: var(--muted); margin-top: 4px; padding: 0 1px; }
+
   #menu-team-grid { display: flex; flex-direction: column; gap: 10px; }
   .menu-team-btn {
     border: none; border-radius: 10px; padding: 14px;
@@ -466,7 +499,15 @@
     <!-- Single Player team-pick step (hidden until Single Player is clicked) -->
     <div id="menu-sp-setup" style="display:none;">
       <h2>Choose Your Team</h2>
-      <p class="menu-hint">You'll play as one team. The other 3 teams will be controlled by bots — each spawns somewhere random in America and moves around on their own.</p>
+      <p class="menu-hint" id="menu-sp-hint">You'll play as one team. The other teams will be controlled by bots — each spawns somewhere random in America and moves around on their own.</p>
+
+      <div id="menu-slider-wrap">
+        <label id="menu-slider-label" for="menu-team-count-slider">Number of Teams: <span id="menu-slider-value">4</span></label>
+        <input type="range" id="menu-team-count-slider" min="2" max="6" step="1" value="4"
+               oninput="onTeamCountSliderChange(this.value)">
+        <div id="menu-slider-ticks"><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+      </div>
+
       <div id="menu-team-grid"></div>
       <button class="menu-btn back" onclick="closeSinglePlayerSetup()">← Back</button>
     </div>
@@ -493,19 +534,20 @@
       <p>Cities like Las Vegas, NYC, and others have a unique Special Action with its own 30-minute cooldown and bigger rewards.</p>
 
       <h3>⚔ Seasons &amp; Teams</h3>
-      <p>Join one of 4 teams. Each team has its own arm on the X-shaped board with 10 sections that must be completed <b>in order</b>. Sections require things like vault deposits, Dice Station use, item collecting, and visiting special cities. The 10th and final section requires planting <b>your team's flag</b> anywhere in America — first team there wins the Season! Flags can only be bought once your team reaches this final section.</p>
+      <p>Join one of 2-6 teams (set with the slider on the menu screen). Each team has its own arm on the X-shaped board with 10 sections that must be completed <b>in order</b>:</p>
+      <p>1) Collect Fabric. 2) Collect Scrap Metal x2. 3) Collect your team's colored Dye (must match your team's color!). 4) Collect Scissors. 5) Collect Wood. 6) Collect a Pole. 7) Deposit 500 🪙 Gold into the Team Vault. 8) Use 5 Dice Stations. 9) Construct your flag at a Workbench. 10) Plant your flag in America — first team there wins the Season!</p>
 
       <h3>🏦 Team Vaults</h3>
       <p>Deposit gold and items into your team's vault from the Seasons tab. Deposits are <b>permanent</b> — nothing can ever be withdrawn.</p>
 
-      <h3>🚩 Flags</h3>
-      <p>Once you're on a team, buy Flags in the Shop (🪙500 each) and place them from your Bag at your current location. They show team pride and count toward your team's final quest.</p>
+      <h3>🚩 Crafting Your Flag</h3>
+      <p>Flags can't be bought — they must be <b>crafted</b>. Find Fabric, Scrap Metal, Scissors, Wood, a Pole, and your team's colored Dye in dumpsters 🗑️ and pawn shops 🏪 scattered across the map. Once you have everything, visit a Workbench 🛠️ (also scattered nationwide) to construct your flag. Then place it from your Bag at your current location to win the Season.</p>
 
       <h3>🎟️ Tickets</h3>
       <p>Buy tickets in the Shop for temporary boosts: Luck, XP Boost, Reach, Super Reach, Double Drop, Cooldown Skip, Sprint, Vault Insurance, and Scanner. You can also buy a Portable Dice Station to place your own permanent station anywhere on the map.</p>
 
       <h3>🤖 Single Player &amp; Bots</h3>
-      <p>In Single Player, the 3 teams you didn't choose are played by bots. Each bot wanders around the country on land (they can't enter water) and periodically deposits into their vault and places flags — so your team has real competition even when playing alone.</p>
+      <p>In Single Player, every team you didn't choose is played by a bot. Each bot wanders around the country on land (they can't enter water) and periodically gathers materials, deposits into their vault, crafts their flag, and plants it — so your team has real competition even when playing alone.</p>
     </div>
     <button class="menu-btn primary" onclick="closeHowToPlay()">Got it!</button>
   </div>
@@ -562,19 +604,23 @@
       <div class="section-hdr">🎲 Nearby Dice Stations</div>
       <div id="nearby-dice-list"></div>
 
+      <div class="section-hdr">🛠️ Nearby Workbenches</div>
+      <div id="nearby-workbench-list"></div>
+
       <div class="section-hdr">📦 Nearby Items</div>
       <div id="nearby-items-list"></div>
 
       <div class="section-hdr">⭐ Nearby Landmarks</div>
       <div id="nearby-list"></div>
+
+      <div class="section-hdr">🧑‍🤝‍🧑 Players &amp; Bots</div>
+      <div id="players-bots-list"></div>
     </div>
 
     <!-- SHOP TAB -->
     <div class="tab-panel" id="tab-shop">
       <div class="section-hdr">General Store</div>
       <div id="shop-list"></div>
-      <div class="section-hdr" style="margin-top:8px;">Team Flags</div>
-      <div id="shop-flags"></div>
     </div>
 
     <!-- INVENTORY TAB -->
@@ -656,8 +702,8 @@ function xpForLevel(lv) { return lv * 100; }
 //  ITEMS DEFINITION
 // =============================================
 const ITEMS = {
-  // Collectibles / materials
-  herb:        { name: 'Herb',         icon: '🌿', desc: 'A common herb. Sell or craft.',       sellPrice: 10 },
+  // General loot — still drop from dumpsters/pawn shops and special city actions, sellable for gold
+  herb:        { name: 'Herb',         icon: '🌿', desc: 'A common herb. Sell for gold.',        sellPrice: 10 },
   crystal:     { name: 'Crystal',      icon: '💎', desc: 'A shimmering crystal shard.',         sellPrice: 40 },
   coin_bag:    { name: 'Coin Bag',     icon: '👝', desc: 'A small bag of coins.',               sellPrice: 80 },
   ancient_map: { name: 'Ancient Map',  icon: '🗺️', desc: 'Reveals a hidden cache nearby.',     sellPrice: 150 },
@@ -665,6 +711,21 @@ const ITEMS = {
   fossil:      { name: 'Fossil',       icon: '🦴', desc: 'A dinosaur relic.',                  sellPrice: 200 },
   sand_dollar: { name: 'Sand Dollar',  icon: '🪙', desc: 'A perfect sand dollar.',              sellPrice: 30 },
   lava_rock:   { name: 'Lava Rock',    icon: '🌋', desc: 'Solidified lava from a volcano.',    sellPrice: 60 },
+
+  // Flag crafting materials — found in dumpsters and pawn shops, needed to craft your team's flag
+  fabric:      { name: 'Fabric',       icon: '🧵', desc: 'A swatch of sturdy fabric — flag material.', sellPrice: 15 },
+  scrap_metal: { name: 'Scrap Metal',  icon: '🔩', desc: 'Bits of scrap metal — used for flag hardware.', sellPrice: 20 },
+  scissors:    { name: 'Scissors',     icon: '✂️', desc: 'A pair of scissors — needed to cut the fabric.', sellPrice: 25 },
+  wood:        { name: 'Wood',         icon: '🪵', desc: 'A plank of wood — for the flagpole.',  sellPrice: 15 },
+  pole:        { name: 'Pole',         icon: '🪝', desc: 'A long pole — the backbone of any good flag.', sellPrice: 30 },
+
+  // Colored dye — one variant per team color. Must match YOUR team's color to count for crafting.
+  dye_red:    { name: 'Red Dye',    icon: '🔴', desc: 'Crimson Order colored dye.',     sellPrice: 20 },
+  dye_green:  { name: 'Green Dye',  icon: '🟢', desc: 'Emerald Syndicate colored dye.', sellPrice: 20 },
+  dye_blue:   { name: 'Blue Dye',   icon: '🔵', desc: 'Sapphire Legion colored dye.',   sellPrice: 20 },
+  dye_yellow: { name: 'Yellow Dye', icon: '🟡', desc: 'Solar Vanguard colored dye.',    sellPrice: 20 },
+  dye_violet: { name: 'Violet Dye', icon: '🟣', desc: 'Violet Dominion colored dye.',   sellPrice: 20 },
+  dye_cyan:   { name: 'Cyan Dye',   icon: '🔷', desc: 'Cyan Coalition colored dye.',    sellPrice: 20 },
 
   // Tickets / boosts
   luck_ticket:     { name: 'Luck Ticket',      icon: '🍀', desc: 'Increases your odds of winning big at Dice Stations for 3 rolls.', sellPrice: 50, usable: true },
@@ -678,13 +739,14 @@ const ITEMS = {
   scanner_ticket:  { name: 'Scanner Ticket',   icon: '📶', desc: 'For 10 minutes, highlights the single closest unclaimed item or station on the map.', sellPrice: 140, usable: true },
   portable_dice_station: { name: 'Portable Dice Station', icon: '🎲', desc: 'Place it anywhere to create a permanent Dice Station — works exactly like any other and stays forever once placed.', sellPrice: 300, usable: true },
 
-  // Team flags — purchasable only while on a team, used for the Season 10 finale quest
-  flag_red:    { name: 'Crimson Order Flag',     icon: '🚩', desc: 'Plant this anywhere to show Crimson Order pride. Counts toward your team\'s flag quest.',     sellPrice: 0 },
-  flag_green:  { name: 'Emerald Syndicate Flag', icon: '🚩', desc: 'Plant this anywhere to show Emerald Syndicate pride. Counts toward your team\'s flag quest.', sellPrice: 0 },
-  flag_blue:   { name: 'Sapphire Legion Flag',   icon: '🚩', desc: 'Plant this anywhere to show Sapphire Legion pride. Counts toward your team\'s flag quest.',   sellPrice: 0 },
-  flag_yellow: { name: 'Solar Vanguard Flag',    icon: '🚩', desc: 'Plant this anywhere to show Solar Vanguard pride. Counts toward your team\'s flag quest.',    sellPrice: 0 },
-  flag_violet: { name: 'Violet Dominion Flag',   icon: '🚩', desc: 'Plant this anywhere to show Violet Dominion pride. Counts toward your team\'s flag quest.',   sellPrice: 0 },
-  flag_cyan:   { name: 'Cyan Coalition Flag',    icon: '🚩', desc: 'Plant this anywhere to show Cyan Coalition pride. Counts toward your team\'s flag quest.',    sellPrice: 0 },
+  // Crafted team flags — NOT purchasable. Only obtained by crafting at a
+  // Workbench once you have all 6 raw materials (with the correct dye color).
+  flag_red:    { name: 'Crimson Order Flag',     icon: '🚩', desc: 'Hand-crafted at a Workbench. Plant it to win the Season for Crimson Order.',     sellPrice: 0 },
+  flag_green:  { name: 'Emerald Syndicate Flag', icon: '🚩', desc: 'Hand-crafted at a Workbench. Plant it to win the Season for Emerald Syndicate.', sellPrice: 0 },
+  flag_blue:   { name: 'Sapphire Legion Flag',   icon: '🚩', desc: 'Hand-crafted at a Workbench. Plant it to win the Season for Sapphire Legion.',   sellPrice: 0 },
+  flag_yellow: { name: 'Solar Vanguard Flag',    icon: '🚩', desc: 'Hand-crafted at a Workbench. Plant it to win the Season for Solar Vanguard.',    sellPrice: 0 },
+  flag_violet: { name: 'Violet Dominion Flag',   icon: '🚩', desc: 'Hand-crafted at a Workbench. Plant it to win the Season for Violet Dominion.',   sellPrice: 0 },
+  flag_cyan:   { name: 'Cyan Coalition Flag',    icon: '🚩', desc: 'Hand-crafted at a Workbench. Plant it to win the Season for Cyan Coalition.',    sellPrice: 0 },
 };
 
 // Active buffs
@@ -715,8 +777,20 @@ const SHOP_ITEMS = [
   { id: 'portable_dice_station', price: 700 },
 ];
 
-const FLAG_PRICE = 500;
 const FLAG_BY_TEAM = { red: 'flag_red', green: 'flag_green', blue: 'flag_blue', yellow: 'flag_yellow', violet: 'flag_violet', cyan: 'flag_cyan' };
+const DYE_BY_TEAM = { red: 'dye_red', green: 'dye_green', blue: 'dye_blue', yellow: 'dye_yellow', violet: 'dye_violet', cyan: 'dye_cyan' };
+
+// The exact materials needed to craft a flag at a Workbench. Dye is resolved
+// per-team via DYE_BY_TEAM since it must match your own team's color.
+const FLAG_RECIPE = {
+  fabric: 1,
+  scrap_metal: 2,
+  scissors: 1,
+  wood: 1,
+  pole: 1,
+  // dye: 1, handled separately since the item id depends on the team
+};
+const FLAG_RECIPE_DYE_QTY = 1;
 
 // =============================================
 //  SEASONS — TEAM WARS
@@ -750,46 +824,38 @@ function getTeamsForCount(count) {
 // Quest template generator — 10 sections per team, increasing difficulty.
 // Mix of: vault deposits (item/gold), collection counts, dice station uses, exploration.
 function buildQuestLine(teamId) {
+  const dyeId = DYE_BY_TEAM[teamId];
+  const dyeItem = ITEMS[dyeId];
   return [
-    // Section 1 — warm-up, single requirement, still a real grind (not a 5-minute clear)
-    { n: 1, type: 'vault_gold', target: 800,
-      label: 'Deposit 800 🪙 Gold into the Team Vault' },
+    { n: 1, type: 'collect_item', item: 'fabric', target: 1,
+      label: `Collect ${ITEMS.fabric.icon} Fabric` },
 
-    // Section 2 — introduces a second resource alongside gold
-    { n: 2, type: 'multi', target: { vault_item_herb: 25, vault_gold: 400 },
-      label: 'Deposit 25 🌿 Herbs AND 400 🪙 Gold into the Team Vault' },
+    { n: 2, type: 'collect_item', item: 'scrap_metal', target: 2,
+      label: `Collect ${ITEMS.scrap_metal.icon} Scrap Metal x2` },
 
-    // Section 3 — first dice requirement; with a 30min cooldown per station, this takes a few real hours
-    { n: 3, type: 'dice', target: 8,
-      label: 'Use Dice Stations 8 times total (30-minute cooldown each)' },
+    { n: 3, type: 'collect_item', item: dyeId, target: FLAG_RECIPE_DYE_QTY,
+      label: `Collect ${dyeItem.icon} ${dyeItem.name} (must be your team's color!)` },
 
-    // Section 4 — uncommon item, meaningful quantity
-    { n: 4, type: 'multi', target: { vault_item_crystal: 20, vault_gold: 600 },
-      label: 'Deposit 20 💎 Crystals AND 600 🪙 Gold into the Team Vault' },
+    { n: 4, type: 'collect_item', item: 'scissors', target: 1,
+      label: `Collect ${ITEMS.scissors.icon} Scissors` },
 
-    // Section 5 — field grinding, much higher bar than before
-    { n: 5, type: 'collect', target: 40,
-      label: 'Collect 40 field items (dumpsters, pawn shops, etc.) anywhere' },
+    { n: 5, type: 'collect_item', item: 'wood', target: 1,
+      label: `Collect ${ITEMS.wood.icon} Wood` },
 
-    // Section 6 — big gold wall + a rare item starts appearing
-    { n: 6, type: 'multi', target: { vault_gold: 1500, vault_item_fossil: 10 },
-      label: 'Deposit 1,500 🪙 Gold AND 10 🦴 Fossils into the Team Vault' },
+    { n: 6, type: 'collect_item', item: 'pole', target: 1,
+      label: `Collect ${ITEMS.pole.icon} Pole` },
 
-    // Section 7 — ancient maps are a low-drop-rate item; this forces exploring special cities
-    { n: 7, type: 'multi', target: { vault_item_ancient_map: 12, dice: 5 },
-      label: 'Deposit 12 🗺️ Ancient Maps into the Vault AND use Dice Stations 5 more times' },
+    { n: 7, type: 'vault_gold', target: 500,
+      label: 'Deposit 500 🪙 Gold/Coins into the Team Vault' },
 
-    // Section 8 — special-action grind requires visiting multiple special cities (cooldown-gated)
-    { n: 8, type: 'special', target: 12,
-      label: 'Trigger Special City Actions 12 times (cooldown-limited — requires visiting multiple cities over time)' },
+    { n: 8, type: 'dice', target: 5,
+      label: 'Use 5 Dice Stations' },
 
-    // Section 9 — gems are the rarest common drop; large ask plus a collect requirement
-    { n: 9, type: 'multi', target: { vault_item_gem: 15, collect: 20 },
-      label: 'Deposit 15 💍 Gems into the Vault AND collect 20 more field items' },
+    { n: 9, type: 'craft_flag', target: 1,
+      label: `Construct your team's flag at a Workbench 🛠️ (requires all materials above)` },
 
-    // Section 10 — the finale: plant your team's flag to win
     { n: 10, type: 'flags', target: 1,
-      label: 'FINAL: Place 1 flag anywhere in America! First team to plant their flag wins the Season!' },
+      label: 'FINAL: Plant your flag in America! First team to plant their flag wins the Season!' },
   ];
 }
 
@@ -812,7 +878,8 @@ function initSeasonTeams() {
       questLine: buildQuestLine(t.id),
       currentSection: 1,       // next section the team must complete (1-10)
       vault: { gold: 0, items: {} },
-      counters: { dice: 0, collect: 0, special: 0, flags: 0 }, // progress trackers for non-vault quests
+      counters: { dice: 0, collect: 0, special: 0, flags: 0, flagCrafted: false }, // progress trackers for non-vault quests
+      materials: {}, // bot-only abstract material tracker (player uses STATE.inventory instead)
     };
   });
 }
@@ -864,7 +931,7 @@ function seasonDepositToVault(itemId, qty) {
 }
 
 // Evaluates a single requirement against a team's current state.
-// Keys: 'vault_gold', 'vault_item_<itemId>', 'dice', 'collect', 'special'
+// Keys: 'vault_gold', 'vault_item_<itemId>', 'dice', 'collect', 'special', 'flags'
 function evalRequirement(team, key, target) {
   if (key === 'vault_gold') return { have: team.vault.gold, need: target, met: team.vault.gold >= target };
   if (key.startsWith('vault_item_')) {
@@ -879,6 +946,16 @@ function evalRequirement(team, key, target) {
   return { have: 0, need: target, met: false };
 }
 
+// For the player's own team, collected crafting materials are tracked in
+// STATE.inventory (so they show up in the Bag and can be crafted with).
+// For bot teams, the same materials are tracked in team.materials, since
+// bots don't have a real inventory — this keeps both using the same
+// quest-completion logic without needing a fake inventory for bots.
+function materialCount(team, teamId, itemId) {
+  if (teamId === SEASON.playerTeam) return STATE.inventory[itemId] || 0;
+  return (team.materials && team.materials[itemId]) || 0;
+}
+
 function checkSectionComplete(teamId) {
   const team = SEASON.teams[teamId];
   if (!team || SEASON.ended) return;
@@ -886,12 +963,14 @@ function checkSectionComplete(teamId) {
   if (!section) return;
 
   let complete = false;
-  if (section.type === 'vault_gold')  complete = team.vault.gold >= section.target;
-  if (section.type === 'vault_item')  complete = (team.vault.items[section.item] || 0) >= section.target;
-  if (section.type === 'dice')        complete = team.counters.dice >= section.target;
-  if (section.type === 'collect')     complete = team.counters.collect >= section.target;
-  if (section.type === 'special')     complete = team.counters.special >= section.target;
-  if (section.type === 'flags')       complete = team.counters.flags >= section.target;
+  if (section.type === 'vault_gold')   complete = team.vault.gold >= section.target;
+  if (section.type === 'vault_item')   complete = (team.vault.items[section.item] || 0) >= section.target;
+  if (section.type === 'dice')         complete = team.counters.dice >= section.target;
+  if (section.type === 'collect')      complete = team.counters.collect >= section.target;
+  if (section.type === 'special')      complete = team.counters.special >= section.target;
+  if (section.type === 'flags')        complete = team.counters.flags >= section.target;
+  if (section.type === 'collect_item') complete = materialCount(team, teamId, section.item) >= section.target;
+  if (section.type === 'craft_flag')   complete = team.counters.flagCrafted === true;
   if (section.type === 'multi') {
     complete = Object.entries(section.target).every(([key, target]) => evalRequirement(team, key, target).met);
   }
@@ -924,7 +1003,6 @@ function startNewSeason() {
   initSeasonTeams();
   addLog(`🆕 Season ${SEASON.number} has begun! Pick your team in the Seasons tab.`, 'info');
   renderSeasonsTab();
-  renderFlagShop();
 }
 
 function joinTeam(teamId) {
@@ -933,7 +1011,6 @@ function joinTeam(teamId) {
   addLog(`🏳️ You joined the ${TEAMS.find(t=>t.id===teamId).name}!`, 'special');
   showToast(`🏳️ Joined ${TEAMS.find(t=>t.id===teamId).name}!`);
   renderSeasonsTab();
-  renderFlagShop();
 }
 
 // =============================================
@@ -947,10 +1024,36 @@ function openSinglePlayerSetup() {
   buttons.style.display = 'none';
   setup.style.display = 'block';
 
+  // Reset slider to the default (4) every time the setup screen is opened
+  document.getElementById('menu-team-count-slider').value = 4;
+  document.getElementById('menu-slider-value').textContent = 4;
+  TEAMS = getTeamsForCount(4);
+  initSeasonTeams();
+
+  renderMenuTeamGrid();
+}
+
+// Called live as the slider is dragged. Rebuilds the active TEAMS list and
+// the season's quest/vault state for the new count, and re-renders the team
+// picker buttons to match — all happens before any game starts, so there's
+// no progress to lose.
+function onTeamCountSliderChange(value) {
+  const count = parseInt(value, 10);
+  document.getElementById('menu-slider-value').textContent = count;
+  TEAMS = getTeamsForCount(count);
+  initSeasonTeams();
+  renderMenuTeamGrid();
+}
+
+function renderMenuTeamGrid() {
   const grid = document.getElementById('menu-team-grid');
   grid.innerHTML = TEAMS.map(t => `
     <button class="menu-team-btn" style="background:${t.color};" onclick="startSinglePlayer('${t.id}')">${t.name}</button>
   `).join('');
+
+  const hint = document.getElementById('menu-sp-hint');
+  const botCount = TEAMS.length - 1;
+  hint.textContent = `You'll play as one team. The other ${botCount} team${botCount === 1 ? '' : 's'} will be controlled by bots — each spawns somewhere random in America and moves around on their own.`;
 }
 
 function closeSinglePlayerSetup() {
@@ -964,17 +1067,17 @@ function startSinglePlayer(teamId) {
   document.getElementById('game-root').classList.add('active');
   gameStarted = true;
 
-  // Join the chosen team
+  // TEAMS and SEASON.teams are already sized correctly from the slider
+  // (see onTeamCountSliderChange / openSinglePlayerSetup), so just join.
   SEASON.playerTeam = teamId;
   addLog(`🏳️ You joined the ${TEAMS.find(t=>t.id===teamId).name}!`, 'special');
 
-  // Spawn a bot for each of the other 3 teams
+  // Spawn a bot for each of the other teams (3, 4, or 5 depending on the slider)
   const otherTeams = TEAMS.filter(t => t.id !== teamId);
   initBots(otherTeams.map(t => t.id));
 
   renderSeasonsTab();
-  renderFlagShop();
-  showToast(`🎮 Single Player started! 3 bots are playing the other teams.`);
+  showToast(`🎮 Single Player started! ${otherTeams.length} bot${otherTeams.length === 1 ? '' : 's'} are playing the other team${otherTeams.length === 1 ? '' : 's'}.`);
 
   // Kick off GPS lookup now that the game is actually visible
   setTimeout(() => { map.invalidateSize(); locatePlayer(); }, 200);
@@ -1082,7 +1185,10 @@ function startBotLoops() {
   if (botMoveTimer) clearInterval(botMoveTimer);
   if (botActionTimer) clearInterval(botActionTimer);
 
-  botMoveTimer = setInterval(() => { BOTS.forEach(moveBotOneTick); }, BOT_MOVE_INTERVAL_MS);
+  botMoveTimer = setInterval(() => {
+    BOTS.forEach(moveBotOneTick);
+    if (STATE.lat != null) updatePlayersAndBotsList(STATE.lat, STATE.lng);
+  }, BOT_MOVE_INTERVAL_MS);
   botActionTimer = setInterval(() => { BOTS.forEach(performBotAction); }, BOT_TICK_INTERVAL_MS);
 }
 
@@ -1200,6 +1306,32 @@ function performBotAction(bot) {
     return false;
   }
 
+  // collect_item and craft_flag aren't ordinary "key" requirements (they
+  // reference team.materials directly), so handle them as their own cases
+  // rather than through the generic advance() lookup above.
+  function advanceCollectItem(itemId, target) {
+    const have = team.materials[itemId] || 0;
+    if (have >= target) return false; // already satisfied, nothing to do
+    // About a 12% chance per 30s tick to find one more of the needed material
+    if (Math.random() < 0.12) {
+      team.materials[itemId] = have + 1;
+      return true;
+    }
+    return false;
+  }
+
+  function advanceCraftFlag() {
+    if (team.counters.flagCrafted) return false;
+    const dyeId = DYE_BY_TEAM[bot.teamId];
+    const need = { ...FLAG_RECIPE, [dyeId]: FLAG_RECIPE_DYE_QTY };
+    const ready = Object.entries(need).every(([itemId, qty]) => (team.materials[itemId] || 0) >= qty);
+    if (!ready) return false; // shouldn't normally happen since section 9 only starts once materials are gathered
+    // Consume the materials and produce the flag
+    Object.keys(need).forEach(itemId => { team.materials[itemId] = 0; });
+    team.counters.flagCrafted = true;
+    return true;
+  }
+
   let advanced = false;
   if (section.type === 'multi') {
     // Advance one random sub-requirement that isn't met yet
@@ -1209,6 +1341,12 @@ function performBotAction(bot) {
       advanced = advance(key);
       if (advanced) botCheckComplete();
     }
+  } else if (section.type === 'collect_item') {
+    advanced = advanceCollectItem(section.item, section.target);
+    if (advanced) botCheckComplete();
+  } else if (section.type === 'craft_flag') {
+    advanced = advanceCraftFlag();
+    if (advanced) botCheckComplete();
   } else {
     advanced = advance(section.type);
     if (advanced) botCheckComplete();
@@ -1326,8 +1464,117 @@ function useDiceStation(stationId) {
 }
 
 // =============================================
-//  SPECIAL LOCATIONS
+//  WORKBENCHES (flag crafting)
 // =============================================
+const WORKBENCH_STATIONS = []; // { id, lat, lng }
+const WORKBENCH_MARKERS = {};
+
+function workbenchIcon() {
+  return L.divIcon({
+    className: '',
+    html: `
+      <svg width="26" height="34" viewBox="0 0 26 34" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));cursor:pointer;">
+        <path d="M13 2 C6.9 2 2 6.9 2 13 C2 20.5 13 32 13 32 C13 32 24 20.5 24 13 C24 6.9 19.1 2 13 2Z"
+              fill="#d97706" stroke="#fff" stroke-width="1.5"/>
+        <rect x="6" y="11" width="14" height="3" rx="1" fill="#fff"/>
+        <rect x="9" y="14" width="2.4" height="6" fill="#fff"/>
+        <rect x="14.6" y="14" width="2.4" height="6" fill="#fff"/>
+      </svg>`,
+    iconSize: [26, 34],
+    iconAnchor: [13, 32],
+  });
+}
+
+// Checks whether the player has every raw material needed to craft their
+// team's flag (using FLAG_RECIPE plus their team-specific dye color).
+function hasAllFlagMaterials() {
+  if (!SEASON.playerTeam) return false;
+  const need = { ...FLAG_RECIPE };
+  need[DYE_BY_TEAM[SEASON.playerTeam]] = FLAG_RECIPE_DYE_QTY;
+  return Object.entries(need).every(([itemId, qty]) => (STATE.inventory[itemId] || 0) >= qty);
+}
+
+function flagMaterialsChecklistHTML() {
+  if (!SEASON.playerTeam) return `<div style="color:#aaa;font-size:.76rem;">Join a team first.</div>`;
+  const need = { ...FLAG_RECIPE };
+  const dyeId = DYE_BY_TEAM[SEASON.playerTeam];
+  need[dyeId] = FLAG_RECIPE_DYE_QTY;
+
+  return Object.entries(need).map(([itemId, qty]) => {
+    const have = STATE.inventory[itemId] || 0;
+    const item = ITEMS[itemId];
+    const ok = have >= qty;
+    return `<div style="font-size:.74rem;color:${ok ? 'var(--green)' : '#aaa'};">${ok ? '✅' : '⬜'} ${item.icon} ${item.name} ${have}/${qty}</div>`;
+  }).join('');
+}
+
+function workbenchPopupHTML(station) {
+  const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, station.lat, station.lng) : Infinity;
+  const radius = effectiveRadiusKm();
+  const inRange = dist <= radius;
+  const distStr = dist === Infinity ? 'Unknown' : dist < 1 ? `${Math.round(dist*1000)} m` : `${dist.toFixed(1)} km`;
+
+  if (!SEASON.playerTeam) {
+    return `<b>🛠️ Workbench</b><br><i style="font-size:.78rem;">Craft your team's flag here once you have every material.</i><br>
+      <small style="color:#aaa;">Join a team in the Seasons tab first.</small>`;
+  }
+
+  const ready = hasAllFlagMaterials();
+  const checklist = flagMaterialsChecklistHTML();
+  const canCraft = inRange && ready;
+
+  return `<b>🛠️ Workbench</b><br><i style="font-size:.78rem;">Craft your team's flag here once you have every material.</i><br>
+    <small style="color:#aaa;">📍 ${distStr} away${radius > COLLECT_RADIUS_KM ? ' (📡 Reach active)' : ''}</small>
+    <div style="margin-top:6px;">${checklist}</div>
+    <button class="dice-popup-btn" onclick="craftFlagAtWorkbench('${station.id}')"
+      style="background:${canCraft ? '#d97706' : '#555'};color:${canCraft ? '#fff' : '#aaa'};cursor:${canCraft ? 'pointer' : 'not-allowed'};margin-top:6px;" ${canCraft ? '' : 'disabled'}>
+      ${!inRange ? `🔒 Too far (${distStr})` : !ready ? '🔒 Missing materials' : '🛠️ Construct Flag'}
+    </button>`;
+}
+
+function craftFlagAtWorkbench(stationId) {
+  const station = WORKBENCH_STATIONS.find(s => s.id === stationId);
+  if (!station) return;
+  if (!SEASON.playerTeam) { showToast('🏳️ Join a team first!'); return; }
+
+  const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, station.lat, station.lng) : Infinity;
+  if (dist > effectiveRadiusKm()) { showToast('🔒 Too far from the Workbench!'); return; }
+
+  if (!hasAllFlagMaterials()) { showToast('🛠️ You\'re missing some materials — check the list at this Workbench.'); return; }
+
+  consumeSuperReachIfUsed(dist);
+
+  // Consume all the raw materials
+  const need = { ...FLAG_RECIPE };
+  const dyeId = DYE_BY_TEAM[SEASON.playerTeam];
+  need[dyeId] = FLAG_RECIPE_DYE_QTY;
+  Object.entries(need).forEach(([itemId, qty]) => {
+    STATE.inventory[itemId] -= qty;
+    if (STATE.inventory[itemId] <= 0) delete STATE.inventory[itemId];
+  });
+
+  // Produce the crafted flag
+  const flagId = FLAG_BY_TEAM[SEASON.playerTeam];
+  addItem(flagId);
+
+  const team = TEAMS.find(t => t.id === SEASON.playerTeam);
+  const teamState = SEASON.teams[SEASON.playerTeam];
+  teamState.counters.flagCrafted = true;
+
+  addLog(`🛠️ Constructed the ${team.name} flag at a Workbench! Now go plant it to win the Season.`, 'special');
+  showToast(`🛠️ Flag constructed!`);
+
+  checkSectionComplete(SEASON.playerTeam);
+  updateInventoryUI();
+  updateHUD();
+
+  const marker = WORKBENCH_MARKERS[stationId];
+  if (marker) marker.getPopup().setContent(workbenchPopupHTML(station));
+  map.closePopup();
+  if (STATE.lat != null) updateNearbyWorkbenchList(STATE.lat, STATE.lng);
+}
+
+
 const SPECIAL_LOCATIONS = [
   // ── Original specials ──────────────────────────────────────────────────────
   { id:'las_vegas',    name:'Las Vegas, NV',        lat:36.1699, lng:-115.1398, type:'Casino City',     emoji:'🎰', desc:'The city of luck! Spin for bonus gold and Luck Tickets.',       specialAction:{label:'🎰 Gamble for Jackpot',   fn:'vegas'},       dropBonus:['luck_ticket','coin_bag','gem'] },
@@ -1494,19 +1741,17 @@ function makePlayerIcon() {
 
 // ── Spawn object types ──────────────────────────────────────────────────────
 const SPAWN_TYPES = [
-  // ── Dumpsters — common, low-value finds from dumpster diving ──────────────
-  { id:'dumpster',        emoji:'🗑️', label:'Dumpster',          rarity:'common',   glow:'#8ecae6', loot:['herb','crystal','coin_bag'],            xp:20, desc:'A dumpster behind a building. Worth a dig through.' },
-  { id:'dumpster_alley',  emoji:'🗑️', label:'Alley Dumpster',    rarity:'common',   glow:'#a0c4ff', loot:['herb','coin_bag','luck_ticket'],        xp:15, desc:'Tucked away in an alley. Someone tossed something useful.' },
-  { id:'recycling_bin',   emoji:'♻️', label:'Recycling Bin',     rarity:'common',   glow:'#caffbf', loot:['herb','crystal','double_drop_ticket'],  xp:18, desc:'A curbside recycling bin. Might have a hidden gem.' },
-  { id:'dumpster_loading',emoji:'🗑️', label:'Loading Dock Dumpster', rarity:'uncommon', glow:'#90e0ef', loot:['coin_bag','scanner_ticket','crystal'], xp:28, desc:'A big commercial dumpster behind a loading dock.' },
-  { id:'construction_bin',emoji:'🪣', label:'Construction Bin',  rarity:'uncommon', glow:'#d4a373', loot:['fossil','crystal','ancient_map'],       xp:32, desc:'A debris bin outside a construction site.' },
+  // ── Dumpster — the only dumpster variant. Common finds: general loot, basic crafting materials, and dye. ──
+  { id:'dumpster', emoji:'🗑️', label:'Dumpster', rarity:'common', glow:'#8ecae6',
+    loot:['herb','crystal','coin_bag','fabric','scrap_metal','wood','pole',
+          'dye_red','dye_green','dye_blue','dye_yellow','dye_violet','dye_cyan'],
+    xp:20, desc:'A dumpster behind a building. Worth a dig through.' },
 
-  // ── Pawn Shops — better, more valuable finds ───────────────────────────────
-  { id:'pawn_shop',       emoji:'🏪', label:'Pawn Shop',         rarity:'uncommon', glow:'#ffd700', loot:['coin_bag','gem','crystal'],             xp:35, desc:'A small pawn shop with a deal worth grabbing.' },
-  { id:'pawn_shop_jewel', emoji:'💎', label:'Pawn Shop Jewelry Case', rarity:'rare', glow:'#ff6b6b', loot:['gem','ancient_map','insurance_ticket'], xp:60, desc:'The jewelry display case — the good stuff is in here.' },
-  { id:'pawn_shop_relic', emoji:'🏺', label:'Pawn Shop Back Room', rarity:'uncommon', glow:'#f9c74f', loot:['sprint_ticket','xp_boost','ancient_map'], xp:38, desc:'The back room where the pawn shop keeps the interesting stuff.' },
-  { id:'pawn_shop_vault', emoji:'🔐', label:'Pawn Shop Vault',   rarity:'rare',     glow:'#c77dff', loot:['luck_ticket','xp_boost','gem'],         xp:55, desc:'The shop owner\'s personal lockbox. Jackpot if you can get in.' },
-  { id:'pawn_shop_counter', emoji:'🪙', label:'Pawn Shop Counter', rarity:'common', glow:'#b5838d', loot:['fossil','crystal','herb'],              xp:22, desc:'Stuff piled up at the counter, waiting to be priced.' },
+  // ── Pawn Shop — the only pawn shop variant. Better finds: rarer loot, tickets, and the rest of the crafting materials. ──
+  { id:'pawn_shop', emoji:'🏪', label:'Pawn Shop', rarity:'uncommon', glow:'#ffd700',
+    loot:['coin_bag','gem','crystal','ancient_map','fossil','scissors','wood','scrap_metal',
+          'luck_ticket','xp_boost','dye_red','dye_green','dye_blue','dye_yellow','dye_violet','dye_cyan'],
+    xp:35, desc:'A small pawn shop with a deal worth grabbing.' },
 ];
 
 // ── Deterministic seeded RNG (mulberry32) ────────────────────────────────────
@@ -1550,8 +1795,8 @@ const SPAWN_MARKERS = {};
 const RARITY_COLORS = { common: '#64b5f6', uncommon: '#ffd54f', rare: '#ef5350' };
 // Icon shape letter per type
 const TYPE_LETTERS = {
-  dumpster:'D', dumpster_alley:'D', recycling_bin:'R', dumpster_loading:'D', construction_bin:'C',
-  pawn_shop:'P', pawn_shop_jewel:'J', pawn_shop_relic:'P', pawn_shop_vault:'V', pawn_shop_counter:'P'
+  dumpster: 'D',
+  pawn_shop: 'P',
 };
 
 function makeSpawnIcon(spawn) {
@@ -1682,8 +1927,20 @@ function collectSpawn(spawnId) {
   addLog(`${spawn.type.emoji} Collected ${spawn.type.label} → got ${item.icon} ${item.name}${bonusText}! (+${spawn.type.xp} XP)`, 'good');
   showToast(`${spawn.type.emoji} Got ${item.name}!${bonusText ? ' 🎁×2' : ''}`);
 
-  // Credit season "collect" quest counter
+  // Credit season "collect" quest counter (legacy quest type, kept for compatibility)
   seasonAddCounter('collect', 1);
+
+  // If this item (or the bonus one) is the exact material the player's team
+  // currently needs for a 'collect_item' section, re-check completion —
+  // collect_item sections read straight from STATE.inventory, so no counter
+  // increment is needed, just a re-check now that inventory has changed.
+  if (SEASON.playerTeam) {
+    const team = SEASON.teams[SEASON.playerTeam];
+    const section = team?.questLine[team.currentSection - 1];
+    if (section && section.type === 'collect_item' && (picked === section.item || (bonusText && section.item))) {
+      checkSectionComplete(SEASON.playerTeam);
+    }
+  }
 
   // Refresh marker icon to greyed out
   const marker = SPAWN_MARKERS[spawnId];
@@ -1695,7 +1952,10 @@ function collectSpawn(spawnId) {
   updateInventoryUI();
   updateHUD();
   map.closePopup();
-  if (STATE.lat != null) updateNearbyItemsList(STATE.lat, STATE.lng);
+  if (STATE.lat != null) {
+    updateNearbyItemsList(STATE.lat, STATE.lng);
+    updateNearbyWorkbenchList(STATE.lat, STATE.lng);
+  }
 }
 
 // ── Spawn respawn timer (30 min) ─────────────────────────────────────────────
@@ -1758,17 +2018,10 @@ function generateNationwideSpawns() {
     if (!isOnLand(lat, lng)) continue;
 
     const rarityRoll = r3;
-    let typeIdx;
-    if      (rarityRoll < 0.04) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_vault');
-    else if (rarityRoll < 0.08) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_jewel');
-    else if (rarityRoll < 0.16) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop');
-    else if (rarityRoll < 0.26) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'construction_bin');
-    else if (rarityRoll < 0.38) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_relic');
-    else if (rarityRoll < 0.48) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster_loading');
-    else if (rarityRoll < 0.62) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster_alley');
-    else if (rarityRoll < 0.76) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'recycling_bin');
-    else if (rarityRoll < 0.90) typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop_counter');
-    else                        typeIdx = SPAWN_TYPES.findIndex(t => t.id === 'dumpster');
+    // Dumpsters are more common than pawn shops (60/40 split)
+    let typeIdx = rarityRoll < 0.6
+      ? SPAWN_TYPES.findIndex(t => t.id === 'dumpster')
+      : SPAWN_TYPES.findIndex(t => t.id === 'pawn_shop');
     if (typeIdx < 0) typeIdx = 0;
 
     const spawn = {
@@ -1815,6 +2068,34 @@ function generateNationwideDiceStations() {
   }
 }
 
+// Workbenches — scattered nationwide just like Dice Stations, used to craft
+// the Season-10 flag once all raw materials have been gathered.
+function generateNationwideWorkbenches() {
+  const LAT_MIN = 25.5, LAT_MAX = 48.5;
+  const LNG_MIN = -124.5, LNG_MAX = -67.5;
+  const COUNT = 60;
+
+  let placed = 0;
+  let i = 0;
+  while (placed < COUNT && i < COUNT * 8) {
+    i++;
+    const r1 = mulberry32(5519 * i + 71);
+    const r2 = mulberry32(8821 * i + 113);
+
+    const lat = LAT_MIN + r1 * (LAT_MAX - LAT_MIN);
+    const lng = LNG_MIN + r2 * (LNG_MAX - LNG_MIN);
+    if (!isOnLand(lat, lng)) continue;
+
+    const station = { id: `workbench_${placed}`, lat, lng };
+    WORKBENCH_STATIONS.push(station);
+    const marker = L.marker([station.lat, station.lng], { icon: workbenchIcon() })
+      .addTo(map)
+      .bindPopup(workbenchPopupHTML(station), { maxWidth: 230 });
+    WORKBENCH_MARKERS[station.id] = marker;
+    placed++;
+  }
+}
+
 // Counter for unique portable station IDs, separate from the nationwide-generated ones.
 let portableDiceStationCount = 0;
 
@@ -1839,6 +2120,7 @@ function placePortableDiceStation() {
   return true;
 }
 generateNationwideDiceStations();
+generateNationwideWorkbenches();
 
 // =============================================
 //  GPS
@@ -1989,7 +2271,9 @@ function updateNearbyList(lat, lng) {
   `).join('');
 
   updateNearbyDiceList(lat, lng);
+  updateNearbyWorkbenchList(lat, lng);
   updateNearbyItemsList(lat, lng);
+  updatePlayersAndBotsList(lat, lng);
 }
 
 function updateNearbyDiceList(lat, lng) {
@@ -2020,6 +2304,36 @@ function updateNearbyDiceList(lat, lng) {
   }).join('');
 }
 
+function updateNearbyWorkbenchList(lat, lng) {
+  const list = document.getElementById('nearby-workbench-list');
+  if (!list) return;
+  if (!WORKBENCH_STATIONS.length) { list.innerHTML = `<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:10px;">No Workbenches loaded yet.</div>`; return; }
+
+  const sorted = WORKBENCH_STATIONS
+    .map(s => ({ s, dist: haversineKm(lat, lng, s.lat, s.lng) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 5);
+
+  const ready = hasAllFlagMaterials();
+
+  list.innerHTML = sorted.map(({ s, dist }) => {
+    const distStr = dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
+    const statusBadge = !SEASON.playerTeam
+      ? `<span style="color:var(--muted);">Join a team</span>`
+      : ready
+        ? `<span style="color:var(--green);">Ready to craft!</span>`
+        : `<span style="color:var(--muted);">Missing materials</span>`;
+    return `
+      <div class="inv-item" style="margin-bottom:6px;cursor:pointer;" onclick="flyTo(${s.lat},${s.lng})">
+        <div class="ii-icon">🛠️</div>
+        <div class="ii-info">
+          <div class="ii-name">Workbench</div>
+          <div class="ii-qty">${distStr} away &nbsp;•&nbsp; ${statusBadge}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 function updateNearbyItemsList(lat, lng) {
   const list = document.getElementById('nearby-items-list');
   if (!list) return;
@@ -2044,6 +2358,56 @@ function updateNearbyItemsList(lat, lng) {
         </div>
       </div>`;
   }).join('');
+}
+
+// Shows the player's own position and every active bot's current position —
+// team color swatch, distance from the player, and tap-to-fly-to. Refreshed
+// whenever GPS updates and on every bot movement tick so it stays live.
+function updatePlayersAndBotsList(lat, lng) {
+  const list = document.getElementById('players-bots-list');
+  if (!list) return;
+
+  const rows = [];
+
+  // The player themself, if GPS is active
+  if (STATE.lat != null) {
+    const teamName = SEASON.playerTeam ? TEAMS.find(t => t.id === SEASON.playerTeam)?.name : null;
+    rows.push(`
+      <div class="inv-item" style="margin-bottom:6px;cursor:pointer;" onclick="flyTo(${STATE.lat},${STATE.lng})">
+        <div class="ii-icon" style="color:#4285F4;">●</div>
+        <div class="ii-info">
+          <div class="ii-name">You${teamName ? ` (${teamName})` : ''}</div>
+          <div class="ii-qty">Your current location</div>
+        </div>
+      </div>`);
+  }
+
+  // Every active bot
+  if (BOTS.length) {
+    const sortedBots = BOTS
+      .map(b => ({ b, dist: haversineKm(lat, lng, b.lat, b.lng) }))
+      .sort((a, b) => a.dist - b.dist);
+
+    sortedBots.forEach(({ b, dist }) => {
+      const team = TEAMS.find(t => t.id === b.teamId);
+      const distStr = dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
+      rows.push(`
+        <div class="inv-item" style="margin-bottom:6px;cursor:pointer;" onclick="flyTo(${b.lat},${b.lng})">
+          <div class="ii-icon" style="color:${team ? team.color : '#999'};">●</div>
+          <div class="ii-info">
+            <div class="ii-name">${b.name}${team ? ` (${team.name})` : ''}</div>
+            <div class="ii-qty">${distStr} away</div>
+          </div>
+        </div>`);
+    });
+  }
+
+  if (!rows.length) {
+    list.innerHTML = `<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:10px;">No one else is out exploring yet — start Single Player to see bots here.</div>`;
+    return;
+  }
+
+  list.innerHTML = rows.join('');
 }
 
 function flyTo(lat, lng) {
@@ -2506,57 +2870,6 @@ function renderShop() {
         <button class="buy-btn" onclick="buyItem('${si.id}', ${si.price})">Buy</button>
       </div>`;
   }).join('');
-
-  renderFlagShop();
-}
-
-function renderFlagShop() {
-  const wrap = document.getElementById('shop-flags');
-  if (!wrap) return;
-
-  if (!SEASON.playerTeam) {
-    wrap.innerHTML = `<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:14px;">Join a team in the Seasons tab to unlock Team Flags.</div>`;
-    return;
-  }
-
-  const team = TEAMS.find(t => t.id === SEASON.playerTeam);
-  const teamState = SEASON.teams[SEASON.playerTeam];
-  const finalSection = teamState.questLine.length; // last section number, whatever it is
-
-  if (teamState.currentSection < finalSection) {
-    wrap.innerHTML = `<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:14px;">Flags unlock once your team reaches the final quest (Section ${finalSection}). You're on Section ${teamState.currentSection} now.</div>`;
-    return;
-  }
-
-  const flagId = FLAG_BY_TEAM[SEASON.playerTeam];
-  const flagItem = ITEMS[flagId];
-
-  wrap.innerHTML = `
-    <div class="shop-item">
-      <div class="si-icon" style="color:${team.color};">🚩</div>
-      <div class="si-info">
-        <div class="si-name">${flagItem.name}</div>
-        <div class="si-desc">${flagItem.desc}</div>
-        <div class="si-price">🪙 ${FLAG_PRICE}</div>
-      </div>
-      <button class="buy-btn" style="background:${team.color};color:#000;" onclick="buyFlag()">Buy</button>
-    </div>`;
-}
-
-function buyFlag() {
-  if (!SEASON.playerTeam) { showToast('🏳️ Join a team first!'); return; }
-  const teamState = SEASON.teams[SEASON.playerTeam];
-  const finalSection = teamState.questLine.length;
-  if (teamState.currentSection < finalSection) { showToast(`🚩 Flags unlock on the final quest (Section ${finalSection})!`); return; }
-  if (STATE.gold < FLAG_PRICE) { showToast('🪙 Not enough gold!'); return; }
-  STATE.gold -= FLAG_PRICE;
-  const flagId = FLAG_BY_TEAM[SEASON.playerTeam];
-  addItem(flagId);
-  const team = TEAMS.find(t => t.id === SEASON.playerTeam);
-  addLog(`🚩 Bought a ${team.name} Flag for 🪙${FLAG_PRICE}!`, 'info');
-  showToast(`🚩 Flag purchased!`);
-  updateInventoryUI();
-  updateHUD();
 }
 
 // =============================================
@@ -2892,6 +3205,17 @@ function renderQuestDetail(teamId, sectionNum) {
       const pct = Math.min(100, (have / section.target) * 100);
       progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
         <div class="qd-meta">${have} / ${section.target} Special City Actions triggered</div>`;
+    } else if (section.type === 'collect_item') {
+      const have = materialCount(teamState, teamId, section.item);
+      const pct = Math.min(100, (have / section.target) * 100);
+      const item = ITEMS[section.item];
+      progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
+        <div class="qd-meta">${have} / ${section.target} ${item.icon} ${item.name} in your Bag</div>
+        <div class="qd-meta" style="margin-top:4px;">Find these in dumpsters 🗑️ and pawn shops 🏪 scattered across the map.</div>`;
+    } else if (section.type === 'craft_flag') {
+      const ready = hasAllFlagMaterials();
+      progressHTML = `<div class="qd-meta" style="margin-top:2px;">${flagMaterialsChecklistHTML()}</div>
+        <div class="qd-meta" style="margin-top:6px;">${ready ? '✅ You have everything — find a Workbench 🛠️ to construct your flag!' : '⬜ Gather every material above, then visit a Workbench 🛠️.'}</div>`;
     } else if (section.type === 'multi') {
       // Render one progress bar + (if applicable) one deposit button per sub-requirement
       const rows = Object.entries(section.target).map(([key, target]) => {
@@ -2924,7 +3248,7 @@ function renderQuestDetail(teamId, sectionNum) {
       const pct = Math.min(100, (have / section.target) * 100);
       progressHTML = `<div class="qd-progress-bar"><div class="qd-progress-fill" style="width:${pct}%;background:${team.color};"></div></div>
         <div class="qd-meta">${have} / ${section.target} 🚩 flag${section.target > 1 ? 's' : ''} planted</div>
-        <div class="qd-meta" style="margin-top:4px;">Buy your team's flag in the Shop tab (🪙${FLAG_PRICE}), then place it from your Bag.</div>`;
+        <div class="qd-meta" style="margin-top:4px;">Craft your team's flag at a Workbench 🛠️, then place it from your Bag.</div>`;
     }
   }
 
@@ -2962,6 +3286,7 @@ function openTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
   if (name === 'inventory') updateInventoryUI();
   if (name === 'seasons') renderSeasonsTab();
+  if (name === 'explore' && STATE.lat != null) updatePlayersAndBotsList(STATE.lat, STATE.lng);
 }
 
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => openTab(b.dataset.tab)));
