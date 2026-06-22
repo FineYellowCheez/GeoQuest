@@ -574,6 +574,45 @@
   #trade-modal-buttons { display: flex; flex-direction: column; gap: 8px; }
   #trade-modal-buttons .menu-btn { padding: 12px; }
 
+  /* === INCOMING BOT TRADE OFFER MODAL === */
+  #incoming-offer-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 5300;
+    background: rgba(0,0,0,.78);
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  #incoming-offer-overlay.active { display: flex; }
+  #incoming-offer-card {
+    background: var(--surface);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 26px 24px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    animation: offer-pop .25s ease-out;
+  }
+  @keyframes offer-pop {
+    0% { transform: scale(.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  #incoming-offer-card h2 { margin-bottom: 4px; color: var(--gold); }
+  #incoming-offer-sub { color: var(--muted); font-size: .85rem; margin-bottom: 14px; }
+  #incoming-offer-details {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: .9rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  #incoming-offer-buttons { display: flex; gap: 10px; }
+  #incoming-offer-buttons .menu-btn { flex: 1; padding: 12px; }
+
   /* === GAME WRAPPER (hidden behind menu until Single Player starts) === */
   #game-root { display: none; }
   #game-root.active { display: flex; flex-direction: column; flex: 1; height: 100%; min-height: 0; }
@@ -643,7 +682,7 @@
       <p>Dumpsters and pawn shops are scattered randomly all across the country — not tied to any particular city. You must be within <b>1 km</b> of something to collect it (a Reach Ticket extends this to 5 km for 5 minutes, or a Super Reach Ticket extends it to 50 km for one single use).</p>
 
       <h3>🎲 Dice Stations</h3>
-      <p>Dice Stations are scattered nationwide, same as items. Roll for gold and XP — each station has a <b>30-minute cooldown</b> after use. Luck Tickets improve your odds. You can also buy a Portable Dice Station and place your own permanent station anywhere.</p>
+      <p>Dice Stations are scattered nationwide, same as items. Roll for gold and XP — each station has a <b>5-minute cooldown</b> after use. Luck Tickets improve your odds. You can also buy a Portable Dice Station and place your own permanent station anywhere.</p>
 
       <h3>⚔ Seasons &amp; Teams</h3>
       <p>Join one of 2-6 teams (set with the slider on the menu screen). Each team has its own arm on the X-shaped board with 10 sections that must be completed <b>in order</b>:</p>
@@ -844,6 +883,19 @@
     </div>
 
     <button class="menu-btn back" onclick="closeTradeModal()">Close</button>
+  </div>
+</div>
+
+<!-- INCOMING BOT TRADE OFFER MODAL -->
+<div id="incoming-offer-overlay">
+  <div id="incoming-offer-card">
+    <h2>🤝 Trade Offer!</h2>
+    <p id="incoming-offer-sub"></p>
+    <div id="incoming-offer-details"></div>
+    <div id="incoming-offer-buttons">
+      <button class="menu-btn primary" style="background:var(--green);" onclick="acceptIncomingOffer()">✅ Accept</button>
+      <button class="menu-btn" style="background:var(--accent2);color:#fff;" onclick="declineIncomingOffer()">❌ Decline</button>
+    </div>
   </div>
 </div>
 
@@ -1271,7 +1323,7 @@ const BOT_TICK_INTERVAL_MS = 30 * 1000;  // bots attempt a quest action every 30
 // Vault deposits / collects / flags have no hard cooldown for the player either,
 // but bots still only act once per 5-minute tick and only add modest amounts,
 // so those sections take hours of real time rather than minutes.
-const BOT_DICE_COOLDOWN_MS = 30 * 60 * 1000; // matches the player's 30-minute Dice Station cooldown
+const BOT_DICE_COOLDOWN_MS = 5 * 60 * 1000; // matches the player's 5-minute Dice Station cooldown
 
 const BOT_NAMES = { red: 'Crimson Bot', green: 'Emerald Bot', blue: 'Sapphire Bot', yellow: 'Solar Bot' };
 
@@ -1336,15 +1388,12 @@ function randomBotStash() {
 function botPopupHTML(bot) {
   const team = TEAMS.find(t => t.id === bot.teamId);
   const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, bot.lat, bot.lng) : Infinity;
-  const radius = effectiveRadiusKm();
-  const inRange = dist <= radius;
   const distStr = dist === Infinity ? 'Unknown' : dist < 1 ? `${Math.round(dist*1000)} m` : `${dist.toFixed(1)} km`;
 
   return `<b>${bot.name}</b><br><i style="font-size:.78rem;">Playing for ${team ? team.name : '???'}</i><br>
-    <small style="color:#aaa;">📍 ${distStr} away${radius > COLLECT_RADIUS_KM ? ' (📡 Reach active)' : ''}</small><br>
-    <button class="dice-popup-btn" onclick="openTradeModal('${bot.teamId}')"
-      style="background:${inRange ? '#10b981' : '#555'};color:${inRange ? '#fff' : '#aaa'};cursor:${inRange ? 'pointer' : 'not-allowed'};" ${inRange ? '' : 'disabled'}>
-      ${inRange ? '🤝 Trade' : `🔒 Too far (${distStr})`}
+    <small style="color:#aaa;">📍 ${distStr} away — trading works from anywhere!</small><br>
+    <button class="dice-popup-btn" onclick="openTradeModal('${bot.teamId}')" style="background:#10b981;color:#fff;cursor:pointer;">
+      🤝 Trade
     </button>`;
 }
 
@@ -1365,9 +1414,11 @@ function initBots(teamIds) {
       targetLat: start.lat, targetLng: start.lng,
       marker,
       name: BOT_NAMES[teamId],
-      lastDiceAt: 0,     // respects the same 30min real cooldown as the player's Dice Stations
+      lastDiceAt: 0,     // respects the same 5min real cooldown as the player's Dice Stations
       gold: 80 + Math.floor(Math.random() * 200),
       inventory: randomBotStash(),
+      questDestType: null,  // 'spawn' | 'dice' | 'workbench' — what kind of location the bot is currently walking toward for quest purposes
+      questDestId: null,    // the specific station/spawn id it's heading for
     };
     marker.setPopupContent(botPopupHTML(bot));
     marker.on('popupopen', () => marker.setPopupContent(botPopupHTML(bot)));
@@ -1379,16 +1430,19 @@ function initBots(teamIds) {
 
 let botMoveTimer = null;
 let botActionTimer = null;
+let botTradeOfferTimer = null;
 
 function startBotLoops() {
   if (botMoveTimer) clearInterval(botMoveTimer);
   if (botActionTimer) clearInterval(botActionTimer);
+  if (botTradeOfferTimer) clearInterval(botTradeOfferTimer);
 
   botMoveTimer = setInterval(() => {
     BOTS.forEach(moveBotOneTick);
     if (STATE.lat != null) updatePlayersAndBotsList(STATE.lat, STATE.lng);
   }, BOT_MOVE_INTERVAL_MS);
   botActionTimer = setInterval(() => { BOTS.forEach(performBotAction); }, BOT_TICK_INTERVAL_MS);
+  botTradeOfferTimer = setInterval(maybeSendBotTradeOffer, BOT_TRADE_OFFER_CHECK_MS);
 }
 
 // Move a bot one step toward its current target, picking a new target if it
@@ -1404,9 +1458,31 @@ function startBotLoops() {
 //     way across the country would take days, so a full US move is an
 //     instant jump rather than an animated crawl.
 function moveBotOneTick(bot) {
+  // If the bot has a quest destination (a specific spawn/dice station/
+  // workbench it needs to physically reach), steer toward that instead of
+  // idle wandering. This is what makes bots actually travel to a Dice
+  // Station, dumpster, etc. before they can interact with it — exactly
+  // like the player has to.
+  if (bot.questDestType && bot.questDestId) {
+    const dest = getBotQuestDestCoords(bot);
+    if (dest) {
+      bot.targetLat = dest.lat;
+      bot.targetLng = dest.lng;
+    } else {
+      // The destination vanished (e.g. someone else collected it) — give up on it
+      bot.questDestType = null;
+      bot.questDestId = null;
+    }
+  }
+
   const distToTarget = haversineKm(bot.lat, bot.lng, bot.targetLat, bot.targetLng);
 
   if (distToTarget < BOT_SPEED_KM_PER_TICK || (bot.targetLat === bot.lat && bot.targetLng === bot.lng)) {
+    if (bot.questDestType && bot.questDestId) {
+      // Arrived at (or already on top of) the quest destination — stay put,
+      // performBotAction will notice it's in range and act on it.
+      return;
+    }
     if (Math.random() < 0.17) {
       // Long-range relocation — instantly jump to a fresh random spot anywhere in the US
       const next = randomLandPoint();
@@ -1438,7 +1514,49 @@ function moveBotOneTick(bot) {
     // That step would cross water — abandon this target and pick a fresh one next tick
     bot.targetLat = bot.lat;
     bot.targetLng = bot.lng;
+    if (bot.questDestType) { bot.questDestType = null; bot.questDestId = null; }
   }
+}
+
+// Looks up the live coordinates of whatever the bot is currently heading
+// toward, by type. Returns null if that destination no longer exists
+// (e.g. a spawn was already collected by the time the bot got there).
+function getBotQuestDestCoords(bot) {
+  if (bot.questDestType === 'spawn') {
+    const spawn = ALL_SPAWNS.find(s => s.id === bot.questDestId);
+    return (spawn && !spawn.collected) ? { lat: spawn.lat, lng: spawn.lng } : null;
+  }
+  if (bot.questDestType === 'dice') {
+    const station = DICE_STATIONS.find(s => s.id === bot.questDestId);
+    return station ? { lat: station.lat, lng: station.lng } : null;
+  }
+  if (bot.questDestType === 'workbench') {
+    const wb = WORKBENCH_STATIONS.find(s => s.id === bot.questDestId);
+    return wb ? { lat: wb.lat, lng: wb.lng } : null;
+  }
+  return null;
+}
+
+// True once the bot has actually arrived within interaction range of its
+// current quest destination — same radius the player uses (no Reach Ticket
+// equivalent for bots, they just have to walk there).
+function botAtQuestDest(bot) {
+  if (!bot.questDestType || !bot.questDestId) return false;
+  const dest = getBotQuestDestCoords(bot);
+  if (!dest) return false;
+  return haversineKm(bot.lat, bot.lng, dest.lat, dest.lng) <= COLLECT_RADIUS_KM;
+}
+
+// When a bot collects a spawn, grey out its marker on the map exactly like
+// when the player collects one — shared state, so the player will see it
+// disappear too if they happen to be looking at that spot.
+function refreshSpawnMarkerIfExists(spawn) {
+  const marker = SPAWN_MARKERS[spawn.id];
+  if (marker) {
+    marker.setIcon(makeSpawnIcon(spawn));
+    marker.getPopup().setContent(spawnPopupHTML(spawn));
+  }
+  if (STATE.lat != null) updateNearbyItemsList(STATE.lat, STATE.lng);
 }
 
 // Bots periodically advance their team's quest: deposit gold/items into the
@@ -1447,11 +1565,12 @@ function moveBotOneTick(bot) {
 //
 // Bots are deliberately throttled to feel like a real, moderately active
 // player rather than an instant quest-clearing machine:
-//   - Dice and Special actions are both gated by the SAME real-world
-//     30-minute cooldown the human player faces.
+//   - Dice Stations are gated by the SAME real-world 5-minute cooldown the
+//     human player faces, and bots must physically walk to a real station
+//     (or spawn/workbench) before they can interact with it — same as the
+//     player.
 //   - Gold/item/collect/flag progress ticks every 30 seconds with small
-//     amounts/odds, so bots are visibly active right away but still take
-//     roughly 1-4 hours of real time to clear a typical section.
+//     amounts/odds, so bots are visibly active right away.
 function performBotAction(bot) {
   // Bots slowly restock their trade stash over time, independent of quest
   // progress, so trading with them doesn't dry up after a deal or two.
@@ -1471,36 +1590,98 @@ function performBotAction(bot) {
     checkSectionComplete(bot.teamId);
   }
 
-  // Small helper: advance one requirement "key" by a modest amount, respecting
-  // real cooldowns for dice/special. Returns true if it actually advanced.
+  // Finds the nearest unclaimed spawn (optionally filtered to a specific
+  // item) and points the bot toward it. Mirrors how the player has to walk
+  // to a dumpster/pawn shop.
+  function headToNearestSpawn(filterItemId) {
+    const candidates = ALL_SPAWNS.filter(s => !s.collected && (!filterItemId || s.type.loot.includes(filterItemId)));
+    if (!candidates.length) return false;
+    const nearest = candidates.reduce((best, s) => {
+      const d = haversineKm(bot.lat, bot.lng, s.lat, s.lng);
+      return (!best || d < best.dist) ? { s, dist: d } : best;
+    }, null);
+    bot.questDestType = 'spawn';
+    bot.questDestId = nearest.s.id;
+    return true;
+  }
+
+  function headToNearestDice() {
+    if (!DICE_STATIONS.length) return false;
+    const nearest = DICE_STATIONS.reduce((best, s) => {
+      const d = haversineKm(bot.lat, bot.lng, s.lat, s.lng);
+      return (!best || d < best.dist) ? { s, dist: d } : best;
+    }, null);
+    bot.questDestType = 'dice';
+    bot.questDestId = nearest.s.id;
+    return true;
+  }
+
+  function headToNearestWorkbench() {
+    if (!WORKBENCH_STATIONS.length) return false;
+    const nearest = WORKBENCH_STATIONS.reduce((best, s) => {
+      const d = haversineKm(bot.lat, bot.lng, s.lat, s.lng);
+      return (!best || d < best.dist) ? { s, dist: d } : best;
+    }, null);
+    bot.questDestType = 'workbench';
+    bot.questDestId = nearest.s.id;
+    return true;
+  }
+
+  // Small helper: advance one requirement "key", but ONLY once the bot has
+  // physically reached the right kind of location — same rule the player follows.
   function advance(key) {
     const now = Date.now();
+
     if (key === 'vault_gold') {
-      team.vault.gold += Math.floor(3 + Math.random() * 4); // ~3-7 gold every 30s tick
+      // Depositing gold doesn't require being anywhere specific (same as the player, who deposits from the Seasons tab)
+      team.vault.gold += Math.floor(3 + Math.random() * 4);
       return true;
     }
+
     if (key.startsWith('vault_item_')) {
       const itemId = key.replace('vault_item_', '');
-      // Items trickle in slowly — about a 12% chance per 30s tick
-      if (Math.random() < 0.12) {
+      if (bot.questDestType !== 'spawn') { headToNearestSpawn(itemId); return false; }
+      if (!botAtQuestDest(bot)) return false;
+      const spawn = ALL_SPAWNS.find(s => s.id === bot.questDestId);
+      if (!spawn || spawn.collected) { bot.questDestType = null; bot.questDestId = null; return false; }
+      spawn.collected = true;
+      refreshSpawnMarkerIfExists(spawn);
+      bot.questDestType = null; bot.questDestId = null;
+      if (Math.random() < 0.4) { // not every visited spawn happens to carry the exact needed item
         team.vault.items[itemId] = (team.vault.items[itemId] || 0) + 1;
         return true;
       }
       return false;
     }
+
     if (key === 'dice') {
-      if (now - bot.lastDiceAt < BOT_DICE_COOLDOWN_MS) return false; // same 30min gate as the player
+      if (bot.questDestType !== 'dice') { headToNearestDice(); return false; }
+      if (!botAtQuestDest(bot)) return false;
+      const station = DICE_STATIONS.find(s => s.id === bot.questDestId);
+      if (!station) { bot.questDestType = null; bot.questDestId = null; return false; }
+      if (now - bot.lastDiceAt < BOT_DICE_COOLDOWN_MS) { bot.questDestType = null; bot.questDestId = null; return false; } // same cooldown as the player
       bot.lastDiceAt = now;
       team.counters.dice += 1;
+      bot.questDestType = null; bot.questDestId = null;
+      const marker = DICE_MARKERS[station.id];
+      if (marker) marker.getPopup().setContent(diceStationPopupHTML(station));
       return true;
     }
+
     if (key === 'collect') {
-      // About a 15% chance per 30s tick
-      if (Math.random() < 0.15) { team.counters.collect += 1; return true; }
-      return false;
+      if (bot.questDestType !== 'spawn') { headToNearestSpawn(); return false; }
+      if (!botAtQuestDest(bot)) return false;
+      const spawn = ALL_SPAWNS.find(s => s.id === bot.questDestId);
+      if (!spawn || spawn.collected) { bot.questDestType = null; bot.questDestId = null; return false; }
+      spawn.collected = true;
+      refreshSpawnMarkerIfExists(spawn);
+      bot.questDestType = null; bot.questDestId = null;
+      team.counters.collect += 1;
+      return true;
     }
+
     if (key === 'flags') {
-      // Flags are deliberately the slowest — about a 10% chance per 30s tick
+      // Planting a flag, like the player, happens "wherever you are" — no station needed
       if (Math.random() < 0.10) { team.counters.flags += 1; return true; }
       return false;
     }
@@ -1513,8 +1694,15 @@ function performBotAction(bot) {
   function advanceCollectItem(itemId, target) {
     const have = team.materials[itemId] || 0;
     if (have >= target) return false; // already satisfied, nothing to do
-    // About a 12% chance per 30s tick to find one more of the needed material
-    if (Math.random() < 0.12) {
+
+    if (bot.questDestType !== 'spawn') { headToNearestSpawn(itemId); return false; }
+    if (!botAtQuestDest(bot)) return false;
+    const spawn = ALL_SPAWNS.find(s => s.id === bot.questDestId);
+    if (!spawn || spawn.collected) { bot.questDestType = null; bot.questDestId = null; return false; }
+    spawn.collected = true;
+    refreshSpawnMarkerIfExists(spawn);
+    bot.questDestType = null; bot.questDestId = null;
+    if (spawn.type.loot.includes(itemId)) {
       team.materials[itemId] = have + 1;
       return true;
     }
@@ -1527,9 +1715,14 @@ function performBotAction(bot) {
     const need = { ...FLAG_RECIPE, [dyeId]: FLAG_RECIPE_DYE_QTY };
     const ready = Object.entries(need).every(([itemId, qty]) => (team.materials[itemId] || 0) >= qty);
     if (!ready) return false; // shouldn't normally happen since section 9 only starts once materials are gathered
+
+    if (bot.questDestType !== 'workbench') { headToNearestWorkbench(); return false; }
+    if (!botAtQuestDest(bot)) return false;
+
     // Consume the materials and produce the flag
     Object.keys(need).forEach(itemId => { team.materials[itemId] = 0; });
     team.counters.flagCrafted = true;
+    bot.questDestType = null; bot.questDestId = null;
     return true;
   }
 
@@ -1567,7 +1760,7 @@ function performBotAction(bot) {
 // =============================================
 //  DICE STATIONS
 // =============================================
-const DICE_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+const DICE_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
 const DICE_STATIONS = []; // populated nationwide, no city correlation — see generateNationwideDiceStations()
 const DICE_MARKERS = {};
 const diceLastUsed = {}; // stationId -> timestamp
@@ -1807,11 +2000,7 @@ function openTradeModal(teamId) {
   const bot = BOTS.find(b => b.teamId === teamId);
   if (!bot) return;
 
-  const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, bot.lat, bot.lng) : Infinity;
-  if (dist > effectiveRadiusKm()) { showToast('🔒 Too far to trade!'); return; }
-
-  consumeSuperReachIfUsed(dist);
-
+  // Trading has no distance requirement — you can trade with any bot from anywhere.
   map.closePopup();
   tradeTargetTeamId = teamId;
 
@@ -1959,6 +2148,117 @@ function proposeTrade() {
 function removeItemQty(id, qty) {
   STATE.inventory[id] = Math.max(0, (STATE.inventory[id] || 0) - qty);
   if (STATE.inventory[id] <= 0) delete STATE.inventory[id];
+}
+
+// =============================================
+//  BOTS INITIATING TRADES WITH THE PLAYER
+// =============================================
+const BOT_TRADE_OFFER_CHECK_MS = 60 * 1000; // check once a minute whether a bot wants to trade
+const BOT_TRADE_OFFER_CHANCE = 0.18;        // ~18% chance per check that SOME bot sends an offer
+
+let incomingOffer = null; // { bot, botGivesId, botGivesQty, wantsId, wantsQty }
+
+// Periodically, a random bot may spontaneously offer the player a trade —
+// they pick something from their own stash to give up and something from
+// the player's Bag (or gold) they'd like in return. Distance has no bearing
+// on this, same as player-initiated trades.
+function maybeSendBotTradeOffer() {
+  if (incomingOffer) return; // don't stack offers — wait until the current one is resolved
+  if (!BOTS.length) return;
+  if (Math.random() > BOT_TRADE_OFFER_CHANCE) return;
+
+  const bot = BOTS[Math.floor(Math.random() * BOTS.length)];
+
+  // What the bot offers: gold or one of its own items
+  const botOffersGold = Math.random() < 0.4;
+  let botGivesId, botGivesQty;
+  if (botOffersGold && bot.gold > 10) {
+    botGivesId = 'gold';
+    botGivesQty = Math.min(bot.gold, 10 + Math.floor(Math.random() * 60));
+  } else {
+    const botItems = getTradeableInventory(bot.inventory);
+    if (!botItems.length) return; // nothing to offer right now
+    botGivesId = botItems[Math.floor(Math.random() * botItems.length)];
+    botGivesQty = Math.min(bot.inventory[botGivesId], 1 + Math.floor(Math.random() * 2));
+  }
+
+  // What the bot wants in return: gold or one of the player's items
+  const wantsGold = Math.random() < 0.4;
+  let wantsId, wantsQty;
+  if (wantsGold) {
+    wantsId = 'gold';
+    wantsQty = 10 + Math.floor(Math.random() * 60);
+  } else {
+    const myItems = getTradeableInventory(STATE.inventory);
+    if (!myItems.length) {
+      // Player has nothing to give — fall back to a gold request instead
+      wantsId = 'gold';
+      wantsQty = 10 + Math.floor(Math.random() * 40);
+    } else {
+      wantsId = myItems[Math.floor(Math.random() * myItems.length)];
+      wantsQty = Math.min(STATE.inventory[wantsId], 1 + Math.floor(Math.random() * 2));
+    }
+  }
+
+  if (botGivesId === wantsId) return; // skip nonsensical same-item offers, try again next check
+
+  incomingOffer = { bot, botGivesId, botGivesQty, wantsId, wantsQty };
+  showIncomingOfferModal();
+}
+
+function showIncomingOfferModal() {
+  if (!incomingOffer) return;
+  const { bot, botGivesId, botGivesQty, wantsId, wantsQty } = incomingOffer;
+
+  const giveName = botGivesId === 'gold' ? `${botGivesQty} Gold` : `${botGivesQty} ${ITEMS[botGivesId].name}`;
+  const wantName = wantsId === 'gold' ? `${wantsQty} Gold` : `${wantsQty} ${ITEMS[wantsId].name}`;
+
+  document.getElementById('incoming-offer-sub').textContent = `${bot.name} wants to make a deal with you.`;
+  document.getElementById('incoming-offer-details').innerHTML = `
+    They give you: <span style="color:var(--green);">${giveName}</span><br>
+    They want: <span style="color:var(--accent2);">${wantName}</span>`;
+
+  document.getElementById('incoming-offer-overlay').classList.add('active');
+}
+
+function acceptIncomingOffer() {
+  if (!incomingOffer) return;
+  const { bot, botGivesId, botGivesQty, wantsId, wantsQty } = incomingOffer;
+
+  // Make sure both sides still actually have what the offer promised
+  // (state may have shifted since the offer was generated).
+  const botHas = botGivesId === 'gold' ? bot.gold : (bot.inventory[botGivesId] || 0);
+  const playerHas = wantsId === 'gold' ? STATE.gold : (STATE.inventory[wantsId] || 0);
+
+  if (botHas < botGivesQty || playerHas < wantsQty) {
+    showToast(`The deal fell through — something changed.`);
+    document.getElementById('incoming-offer-overlay').classList.remove('active');
+    incomingOffer = null;
+    return;
+  }
+
+  // Execute the swap
+  if (botGivesId === 'gold') { bot.gold -= botGivesQty; STATE.gold += botGivesQty; }
+  else { bot.inventory[botGivesId] -= botGivesQty; if (bot.inventory[botGivesId] <= 0) delete bot.inventory[botGivesId]; addItem(botGivesId, botGivesQty); }
+
+  if (wantsId === 'gold') { STATE.gold -= wantsQty; bot.gold += wantsQty; }
+  else { removeItemQty(wantsId, wantsQty); bot.inventory[wantsId] = (bot.inventory[wantsId] || 0) + wantsQty; }
+
+  const giveName = botGivesId === 'gold' ? `${botGivesQty} Gold` : `${botGivesQty} ${ITEMS[botGivesId].name}`;
+  const wantName = wantsId === 'gold' ? `${wantsQty} Gold` : `${wantsQty} ${ITEMS[wantsId].name}`;
+  addLog(`🤝 Accepted ${bot.name}'s offer — got ${giveName}, gave ${wantName}.`, 'good');
+  showToast(`🤝 Trade accepted!`);
+
+  updateHUD(); updateInventoryUI();
+  document.getElementById('incoming-offer-overlay').classList.remove('active');
+  incomingOffer = null;
+}
+
+function declineIncomingOffer() {
+  if (!incomingOffer) return;
+  addLog(`${incomingOffer.bot.name}'s trade offer was declined.`, 'info');
+  document.getElementById('incoming-offer-overlay').classList.remove('active');
+  incomingOffer = null;
 }
 
 // =============================================
@@ -2456,7 +2756,7 @@ function spawnPopupHTML(spawn) {
 
   if (spawn.collected) {
     return `<b>${typeLabel}</b> <span style="color:#aaa;font-size:.7rem;">[${rarityName}]</span><br>
-            <i style="color:#888;font-size:.78rem;">Already collected — respawns in 30 min</i>`;
+            <i style="color:#888;font-size:.78rem;">Already collected — respawns in 5 min</i>`;
   }
 
   const dist    = distToSpawn(spawn);
@@ -2549,7 +2849,7 @@ function collectSpawn(spawnId) {
   }
 }
 
-// ── Spawn respawn timer (30 min) ─────────────────────────────────────────────
+// ── Spawn respawn timer (5 min) ─────────────────────────────────────────────
 setInterval(() => {
   ALL_SPAWNS.forEach(s => {
     if (s.collected) {
@@ -2558,7 +2858,7 @@ setInterval(() => {
       if (m) { m.setIcon(makeSpawnIcon(s)); m.getPopup().setContent(spawnPopupHTML(s)); }
     }
   });
-}, 30 * 60 * 1000);
+}, 5 * 60 * 1000);
 
 // ── Build all spawns & place markers on map ──────────────────────────────────
 SPECIAL_LOCATIONS.forEach(loc => {
@@ -3044,7 +3344,6 @@ function updatePlayersAndBotsList(lat, lng) {
     sortedBots.forEach(({ b, dist }) => {
       const team = TEAMS.find(t => t.id === b.teamId);
       const distStr = dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
-      const canTrade = dist <= effectiveRadiusKm();
       rows.push(`
         <div class="inv-item" style="margin-bottom:6px;">
           <div class="ii-icon" style="color:${team ? team.color : '#999'};cursor:pointer;" onclick="flyTo(${b.lat},${b.lng})">●</div>
@@ -3052,7 +3351,7 @@ function updatePlayersAndBotsList(lat, lng) {
             <div class="ii-name">${b.name}${team ? ` (${team.name})` : ''}</div>
             <div class="ii-qty">${distStr} away</div>
           </div>
-          <button class="use-btn" style="${canTrade ? '' : 'opacity:.4;cursor:not-allowed;'}" onclick="openTradeModal('${b.teamId}')">🤝 Trade</button>
+          <button class="use-btn" onclick="openTradeModal('${b.teamId}')">🤝 Trade</button>
         </div>`);
     });
   }
