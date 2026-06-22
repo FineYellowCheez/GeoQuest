@@ -686,13 +686,13 @@
 
       <h3>⚔ Seasons &amp; Teams</h3>
       <p>Join one of 2-6 teams (set with the slider on the menu screen). Each team has its own arm on the X-shaped board with 10 sections that must be completed <b>in order</b>:</p>
-      <p>1) Collect Fabric. 2) Collect Scrap Metal x2. 3) Collect your team's colored Dye (must match your team's color!). 4) Collect Scissors. 5) Collect Wood. 6) Collect a Pole. 7) Deposit 500 🪙 Gold into the Team Vault. 8) Use 5 Dice Stations. 9) Construct your flag at a Workbench. 10) Plant your flag in America — first team there wins the Season!</p>
+      <p>1) Deposit Fabric. 2) Deposit Scrap Metal x2. 3) Deposit your team's colored Dye (must match your team's color!). 4) Deposit Scissors. 5) Deposit Wood. 6) Deposit a Pole. 7) Deposit 500 🪙 Gold. (All into the Team Vault.) 8) Use 5 Dice Stations. 9) Construct your flag at a Workbench (uses the vault's materials). 10) Plant your flag in America — first team there wins the Season!</p>
 
       <h3>🏦 Team Vaults</h3>
       <p>Deposit gold and items into your team's vault from the Seasons tab. Deposits are <b>permanent</b> — nothing can ever be withdrawn.</p>
 
       <h3>🚩 Crafting Your Flag</h3>
-      <p>Flags can't be bought — they must be <b>crafted</b>. Find Fabric, Scrap Metal, Scissors, Wood, a Pole, and your team's colored Dye in dumpsters 🗑️ and pawn shops 🏪 scattered across the map. Once you have everything, visit a Workbench 🛠️ (also scattered nationwide) to construct your flag. Then place it from your Bag at your current location to win the Season.</p>
+      <p>Flags can't be bought — they must be <b>crafted</b>. Find Fabric, Scrap Metal, Scissors, Wood, a Pole, and your team's colored Dye in dumpsters and pawn shops scattered across the map, then <b>deposit each one into your Team Vault</b> from the Seasons tab. Once your vault has everything, visit a Workbench (also scattered nationwide) to construct your flag — it'll consume the materials from the vault. Then place the flag from your Bag at your current location to win the Season.</p>
 
       <h3>🎟️ Tickets</h3>
       <p>Buy tickets in the Shop for temporary boosts: Luck, XP Boost, Reach, Super Reach, Double Drop, Cooldown Skip, Sprint, Vault Insurance, and Scanner. You can also buy a Portable Dice Station to place your own permanent station anywhere on the map.</p>
@@ -734,7 +734,7 @@
       <button class="tab-btn active" data-tab="explore"><span class="tab-icon" id="tabicon-explore"></span>Explore</button>
       <button class="tab-btn" data-tab="shop"><span class="tab-icon" id="tabicon-shop"></span>Shop</button>
       <button class="tab-btn" data-tab="inventory"><span class="tab-icon" id="tabicon-inventory"></span>Bag</button>
-      <button class="tab-btn" data-tab="seasons">⚔ Seasons</button>
+      <button class="tab-btn" data-tab="seasons"><span class="tab-icon">⚔</span>Seasons</button>
       <button class="tab-btn" data-tab="log"><span class="tab-icon" id="tabicon-log"></span>Log</button>
     </div>
 
@@ -1046,23 +1046,23 @@ function buildQuestLine(teamId) {
   const dyeId = DYE_BY_TEAM[teamId];
   const dyeItem = ITEMS[dyeId];
   return [
-    { n: 1, type: 'collect_item', item: 'fabric', target: 1,
-      label: `Collect ${svgIcon(ITEMS.fabric.icon, 16)} Fabric` },
+    { n: 1, type: 'vault_item', item: 'fabric', target: 1,
+      label: `Deposit ${svgIcon(ITEMS.fabric.icon, 16)} Fabric into the Team Vault` },
 
-    { n: 2, type: 'collect_item', item: 'scrap_metal', target: 2,
-      label: `Collect ${svgIcon(ITEMS.scrap_metal.icon, 16)} Scrap Metal x2` },
+    { n: 2, type: 'vault_item', item: 'scrap_metal', target: 2,
+      label: `Deposit ${svgIcon(ITEMS.scrap_metal.icon, 16)} Scrap Metal x2 into the Team Vault` },
 
-    { n: 3, type: 'collect_item', item: dyeId, target: FLAG_RECIPE_DYE_QTY,
-      label: `Collect ${svgIcon(dyeItem.icon, 16)} ${dyeItem.name} (must be your team's color!)` },
+    { n: 3, type: 'vault_item', item: dyeId, target: FLAG_RECIPE_DYE_QTY,
+      label: `Deposit ${svgIcon(dyeItem.icon, 16)} ${dyeItem.name} into the Team Vault (must be your team's color!)` },
 
-    { n: 4, type: 'collect_item', item: 'scissors', target: 1,
-      label: `Collect ${svgIcon(ITEMS.scissors.icon, 16)} Scissors` },
+    { n: 4, type: 'vault_item', item: 'scissors', target: 1,
+      label: `Deposit ${svgIcon(ITEMS.scissors.icon, 16)} Scissors into the Team Vault` },
 
-    { n: 5, type: 'collect_item', item: 'wood', target: 1,
-      label: `Collect ${svgIcon(ITEMS.wood.icon, 16)} Wood` },
+    { n: 5, type: 'vault_item', item: 'wood', target: 1,
+      label: `Deposit ${svgIcon(ITEMS.wood.icon, 16)} Wood into the Team Vault` },
 
-    { n: 6, type: 'collect_item', item: 'pole', target: 1,
-      label: `Collect ${svgIcon(ITEMS.pole.icon, 16)} Pole` },
+    { n: 6, type: 'vault_item', item: 'pole', target: 1,
+      label: `Deposit ${svgIcon(ITEMS.pole.icon, 16)} Pole into the Team Vault` },
 
     { n: 7, type: 'vault_gold', target: 500,
       label: `Deposit 500 ${svgIcon('gold', 16)} Gold/Coins into the Team Vault` },
@@ -1390,6 +1390,16 @@ function botPopupHTML(bot) {
   const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, bot.lat, bot.lng) : Infinity;
   const distStr = dist === Infinity ? 'Unknown' : dist < 1 ? `${Math.round(dist*1000)} m` : `${dist.toFixed(1)} km`;
 
+  const refusalRemaining = bot.tradeRefusedUntil - Date.now();
+  if (refusalRemaining > 0) {
+    const mins = Math.ceil(refusalRemaining / 60000);
+    return `<b>${bot.name}</b><br><i style="font-size:.78rem;">Playing for ${team ? team.name : '???'}</i><br>
+      <small style="color:#aaa;">📍 ${distStr} away</small><br>
+      <button class="dice-popup-btn" disabled style="background:#555;color:#aaa;cursor:not-allowed;">
+        🔒 Doesn't want to trade (${mins}m)
+      </button>`;
+  }
+
   return `<b>${bot.name}</b><br><i style="font-size:.78rem;">Playing for ${team ? team.name : '???'}</i><br>
     <small style="color:#aaa;">📍 ${distStr} away — trading works from anywhere!</small><br>
     <button class="dice-popup-btn" onclick="openTradeModal('${bot.teamId}')" style="background:#10b981;color:#fff;cursor:pointer;">
@@ -1419,6 +1429,7 @@ function initBots(teamIds) {
       inventory: randomBotStash(),
       questDestType: null,  // 'spawn' | 'dice' | 'workbench' — what kind of location the bot is currently walking toward for quest purposes
       questDestId: null,    // the specific station/spawn id it's heading for
+      tradeRefusedUntil: 0, // timestamp until which this bot won't even consider trading, after a refusal
     };
     marker.setPopupContent(botPopupHTML(bot));
     marker.on('popupopen', () => marker.setPopupContent(botPopupHTML(bot)));
@@ -1713,14 +1724,17 @@ function performBotAction(bot) {
     if (team.counters.flagCrafted) return false;
     const dyeId = DYE_BY_TEAM[bot.teamId];
     const need = { ...FLAG_RECIPE, [dyeId]: FLAG_RECIPE_DYE_QTY };
-    const ready = Object.entries(need).every(([itemId, qty]) => (team.materials[itemId] || 0) >= qty);
+    const ready = Object.entries(need).every(([itemId, qty]) => (team.vault.items[itemId] || 0) >= qty);
     if (!ready) return false; // shouldn't normally happen since section 9 only starts once materials are gathered
 
     if (bot.questDestType !== 'workbench') { headToNearestWorkbench(); return false; }
     if (!botAtQuestDest(bot)) return false;
 
-    // Consume the materials and produce the flag
-    Object.keys(need).forEach(itemId => { team.materials[itemId] = 0; });
+    // Consume the materials from the team vault and produce the flag
+    Object.entries(need).forEach(([itemId, qty]) => {
+      team.vault.items[itemId] -= qty;
+      if (team.vault.items[itemId] <= 0) delete team.vault.items[itemId];
+    });
     team.counters.flagCrafted = true;
     bot.questDestType = null; bot.questDestId = null;
     return true;
@@ -1735,6 +1749,9 @@ function performBotAction(bot) {
       advanced = advance(key);
       if (advanced) botCheckComplete();
     }
+  } else if (section.type === 'vault_item') {
+    advanced = advance(`vault_item_${section.item}`);
+    if (advanced) botCheckComplete();
   } else if (section.type === 'collect_item') {
     advanced = advanceCollectItem(section.item, section.target);
     if (advanced) botCheckComplete();
@@ -1967,11 +1984,6 @@ function finishDiceGame(won) {
     showToast(`🎲 Lost the pot...`);
   }
 
-  if (sawSix) {
-    addItem('gem');
-    addLog(`🎲 Rolled a 6 this game — bonus 💍 Gem awarded!`, 'special');
-  }
-
   // Credit season quest counter regardless of win/loss — using the station still counts
   seasonAddCounter('dice', 1);
 
@@ -1988,6 +2000,10 @@ function finishDiceGame(won) {
 // =============================================
 let tradeTargetTeamId = null; // which bot's team we're currently trading with
 
+// Once a bot refuses a deal, they won't even discuss trading again for a
+// while — this is what makes spamming the same lopsided offer pointless.
+const BOT_TRADE_REFUSAL_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+
 // Builds the list of things the player can offer: "Gold" plus every item in
 // their Bag (excluding crafted/uncrafted flags, which aren't tradeable).
 function getTradeableInventory(inventoryObj) {
@@ -1999,6 +2015,14 @@ function getTradeableInventory(inventoryObj) {
 function openTradeModal(teamId) {
   const bot = BOTS.find(b => b.teamId === teamId);
   if (!bot) return;
+
+  // If this bot recently refused a deal, they won't even discuss trading yet.
+  const refusalRemaining = bot.tradeRefusedUntil - Date.now();
+  if (refusalRemaining > 0) {
+    const mins = Math.ceil(refusalRemaining / 60000);
+    showToast(`${bot.name} doesn't want to trade right now. Try again in ${mins} min.`);
+    return;
+  }
 
   // Trading has no distance requirement — you can trade with any bot from anywhere.
   map.closePopup();
@@ -2095,26 +2119,28 @@ function proposeTrade() {
     return;
   }
 
-  // Bot's decision: compare value of what they'd give up vs receive, plus
-  // some randomness so it doesn't feel like a deterministic vending machine.
-  // Bots like deals that favor them, occasionally accept fair deals, and
-  // almost always refuse deals that are bad for them.
+  // Bot's decision: compare value of what they'd give up vs receive.
+  // Below a fairness floor, the bot ALWAYS refuses — no amount of re-asking
+  // changes that, so spamming the same lopsided offer is pointless. Above
+  // the floor, there's some randomness so it doesn't feel like a vending
+  // machine, but a bad-for-the-bot deal can never randomly succeed.
   const offerValue = tradeValue(offerId, offerQty);
   const requestValue = tradeValue(requestId, requestQty);
   const ratio = requestValue === 0 ? 2 : offerValue / requestValue; // how good the deal is FOR THE BOT (>1 = bot gains value)
 
+  const FAIRNESS_FLOOR = 0.85; // below this, the bot will NEVER accept, period
   let acceptChance;
-  if (ratio >= 1.3) acceptChance = 0.9;       // great deal for the bot
-  else if (ratio >= 1.0) acceptChance = 0.65; // fair-to-good
-  else if (ratio >= 0.7) acceptChance = 0.3;  // a bit lopsided against the bot
-  else acceptChance = 0.08;                   // bad deal for the bot, rarely accepts
+  if (ratio < FAIRNESS_FLOOR) acceptChance = 0; // hard no — deterministic, immune to spamming
+  else if (ratio >= 1.3) acceptChance = 0.9;     // great deal for the bot
+  else if (ratio >= 1.0) acceptChance = 0.65;    // fair-to-good
+  else acceptChance = 0.3;                       // a bit lopsided against the bot, but above the floor
 
   document.getElementById('trade-propose-btn').disabled = true;
   resultEl.textContent = `${bot.name} is thinking it over…`;
   resultEl.className = '';
 
   setTimeout(() => {
-    const accepted = Math.random() < acceptChance;
+    const accepted = acceptChance > 0 && Math.random() < acceptChance;
 
     if (accepted) {
       // Execute the swap
@@ -2136,9 +2162,17 @@ function proposeTrade() {
       document.getElementById('trade-modal-buttons').innerHTML = `
         <button class="menu-btn primary" onclick="closeTradeModal()">Close</button>`;
     } else {
-      resultEl.textContent = `❌ ${bot.name} turned down that offer. Try something more even.`;
+      // Refusing puts the bot on a cooldown — they won't discuss trading
+      // again for a while, so the player can't just spam the same offer.
+      bot.tradeRefusedUntil = Date.now() + BOT_TRADE_REFUSAL_COOLDOWN_MS;
+      const mins = Math.round(BOT_TRADE_REFUSAL_COOLDOWN_MS / 60000);
+
+      resultEl.textContent = ratio < FAIRNESS_FLOOR
+        ? `❌ ${bot.name} says that's not even close to fair. They won't trade with you for ${mins} minutes.`
+        : `❌ ${bot.name} turned down that offer. They won't trade with you for ${mins} minutes.`;
       resultEl.className = 'bad';
-      document.getElementById('trade-propose-btn').disabled = false;
+      document.getElementById('trade-modal-buttons').innerHTML = `
+        <button class="menu-btn primary" onclick="closeTradeModal()">Close</button>`;
     }
   }, 900);
 }
@@ -2167,7 +2201,10 @@ function maybeSendBotTradeOffer() {
   if (!BOTS.length) return;
   if (Math.random() > BOT_TRADE_OFFER_CHANCE) return;
 
-  const bot = BOTS[Math.floor(Math.random() * BOTS.length)];
+  // Skip bots currently in a refusal cooldown — they're not in the mood to trade at all right now.
+  const availableBots = BOTS.filter(b => b.tradeRefusedUntil <= Date.now());
+  if (!availableBots.length) return;
+  const bot = availableBots[Math.floor(Math.random() * availableBots.length)];
 
   // What the bot offers: gold or one of its own items
   const botOffersGold = Math.random() < 0.4;
@@ -2283,26 +2320,30 @@ function workbenchIcon() {
   });
 }
 
-// Checks whether the player has every raw material needed to craft their
-// team's flag (using FLAG_RECIPE plus their team-specific dye color).
+// Checks whether the player's TEAM VAULT has every raw material needed to
+// craft the team's flag (using FLAG_RECIPE plus their team-specific dye
+// color). Materials must be deposited into the vault first — crafting pulls
+// from there, not from the player's personal Bag.
 function hasAllFlagMaterials() {
   if (!SEASON.playerTeam) return false;
+  const teamState = SEASON.teams[SEASON.playerTeam];
   const need = { ...FLAG_RECIPE };
   need[DYE_BY_TEAM[SEASON.playerTeam]] = FLAG_RECIPE_DYE_QTY;
-  return Object.entries(need).every(([itemId, qty]) => (STATE.inventory[itemId] || 0) >= qty);
+  return Object.entries(need).every(([itemId, qty]) => (teamState.vault.items[itemId] || 0) >= qty);
 }
 
 function flagMaterialsChecklistHTML() {
   if (!SEASON.playerTeam) return `<div style="color:#aaa;font-size:.76rem;">Join a team first.</div>`;
+  const teamState = SEASON.teams[SEASON.playerTeam];
   const need = { ...FLAG_RECIPE };
   const dyeId = DYE_BY_TEAM[SEASON.playerTeam];
   need[dyeId] = FLAG_RECIPE_DYE_QTY;
 
   return Object.entries(need).map(([itemId, qty]) => {
-    const have = STATE.inventory[itemId] || 0;
+    const have = teamState.vault.items[itemId] || 0;
     const item = ITEMS[itemId];
     const ok = have >= qty;
-    return `<div style="font-size:.74rem;color:${ok ? 'var(--green)' : '#aaa'};display:flex;align-items:center;gap:5px;">${ok ? '✅' : '⬜'} ${svgIcon(item.icon, 14)} ${item.name} ${have}/${qty}</div>`;
+    return `<div style="font-size:.74rem;color:${ok ? 'var(--green)' : '#aaa'};display:flex;align-items:center;gap:5px;">${ok ? '✅' : '⬜'} ${svgIcon(item.icon, 14)} ${item.name} ${have}/${qty} (in vault)</div>`;
   }).join('');
 }
 
@@ -2338,17 +2379,18 @@ function craftFlagAtWorkbench(stationId) {
   const dist = STATE.lat != null ? haversineKm(STATE.lat, STATE.lng, station.lat, station.lng) : Infinity;
   if (dist > effectiveRadiusKm()) { showToast('🔒 Too far from the Workbench!'); return; }
 
-  if (!hasAllFlagMaterials()) { showToast('🛠️ You\'re missing some materials — check the list at this Workbench.'); return; }
+  if (!hasAllFlagMaterials()) { showToast('🛠️ Your team vault is missing some materials — check the list at this Workbench.'); return; }
 
   consumeSuperReachIfUsed(dist);
 
-  // Consume all the raw materials
+  // Consume all the raw materials from the team vault
+  const teamState = SEASON.teams[SEASON.playerTeam];
   const need = { ...FLAG_RECIPE };
   const dyeId = DYE_BY_TEAM[SEASON.playerTeam];
   need[dyeId] = FLAG_RECIPE_DYE_QTY;
   Object.entries(need).forEach(([itemId, qty]) => {
-    STATE.inventory[itemId] -= qty;
-    if (STATE.inventory[itemId] <= 0) delete STATE.inventory[itemId];
+    teamState.vault.items[itemId] -= qty;
+    if (teamState.vault.items[itemId] <= 0) delete teamState.vault.items[itemId];
   });
 
   // Produce the crafted flag
@@ -2356,7 +2398,6 @@ function craftFlagAtWorkbench(stationId) {
   addItem(flagId);
 
   const team = TEAMS.find(t => t.id === SEASON.playerTeam);
-  const teamState = SEASON.teams[SEASON.playerTeam];
   teamState.counters.flagCrafted = true;
 
   addLog(`🛠️ Constructed the ${team.name} flag at a Workbench! Now go plant it to win the Season.`, 'special');
@@ -3344,6 +3385,10 @@ function updatePlayersAndBotsList(lat, lng) {
     sortedBots.forEach(({ b, dist }) => {
       const team = TEAMS.find(t => t.id === b.teamId);
       const distStr = dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
+      const refusalRemaining = b.tradeRefusedUntil - Date.now();
+      const tradeBtn = refusalRemaining > 0
+        ? `<button class="use-btn" style="opacity:.5;cursor:not-allowed;" disabled>🔒 ${Math.ceil(refusalRemaining/60000)}m</button>`
+        : `<button class="use-btn" onclick="openTradeModal('${b.teamId}')">🤝 Trade</button>`;
       rows.push(`
         <div class="inv-item" style="margin-bottom:6px;">
           <div class="ii-icon" style="color:${team ? team.color : '#999'};cursor:pointer;" onclick="flyTo(${b.lat},${b.lng})">●</div>
@@ -3351,7 +3396,7 @@ function updatePlayersAndBotsList(lat, lng) {
             <div class="ii-name">${b.name}${team ? ` (${team.name})` : ''}</div>
             <div class="ii-qty">${distStr} away</div>
           </div>
-          <button class="use-btn" onclick="openTradeModal('${b.teamId}')">🤝 Trade</button>
+          ${tradeBtn}
         </div>`);
     });
   }
